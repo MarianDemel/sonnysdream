@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maturitní Testy IT - Komplet</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f9; margin: 0; display: flex; height: 100vh; color: #333; }
+        
+        /* Sidebar navigace */
+        .sidebar { width: 300px; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+        .sidebar-header { padding: 20px; background: #2563eb; color: white; }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
+        .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        .nav-btn { 
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
+            border: 1px solid #ccc; background: #eee; cursor: pointer; font-size: 12px; border-radius: 4px;
+        }
+        .nav-btn:hover { background: #dbeafe; }
+        .nav-btn.active { border: 2px solid #2563eb; font-weight: bold; }
+        .nav-btn.correct { background: #22c55e; color: white; border-color: #16a34a; }
+        .nav-btn.wrong { background: #ef4444; color: white; border-color: #dc2626; }
+        
+        /* Hlavní obsah */
+        .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 800px; width: 100%; }
+        
+        .question-meta { color: #666; font-size: 0.9em; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .question-text { font-size: 1.2em; font-weight: bold; margin-bottom: 25px; line-height: 1.5; }
+        
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option { 
+            padding: 15px; border: 2px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: 0.2s; 
+            display: flex; align-items: center;
+        }
+        .option:hover { background: #f9fafb; border-color: #2563eb; }
+        .option.correct { background: #dcfce7; border-color: #22c55e; color: #14532d; }
+        .option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
+        .option.disabled { pointer-events: none; opacity: 0.8; }
+        
+        .explanation { 
+            margin-top: 20px; padding: 15px; background: #eff6ff; border-left: 4px solid #2563eb; 
+            display: none; 
+        }
+
+        .controls { margin-top: 30px; display: flex; justify-content: space-between; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: #e5e7eb; color: #333; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; }
+
+        /* Timer bar pro test */
+        .top-bar { width: 100%; max-width: 800px; background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .timer { font-size: 1.5em; font-weight: bold; color: #dc2626; font-family: monospace; }
+        
+        /* Výsledky */
+        .results { display: none; text-align: center; }
+        .score-big { font-size: 4em; font-weight: bold; color: #2563eb; margin: 20px 0; }
+
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <h2 style="margin:0">Maturita IT</h2>
+        <div style="margin-top:10px; display:flex; gap:5px;">
+            <button class="btn" style="flex:1; font-size:12px;" onclick="setMode('practice')">Procvičování</button>
+            <button class="btn btn-primary" style="flex:1; font-size:12px;" onclick="setMode('test')">Spustit TEST</button>
+        </div>
+    </div>
+    <div class="sidebar-content">
+        <div class="nav-grid" id="nav-grid"></div>
+    </div>
+</div>
+
+<div class="main">
+    <div class="top-bar" id="test-bar">
+        <div><strong>Ostrý test</strong> (20 náhodných otázek)</div>
+        <div class="timer" id="timer">20:00</div>
+        <button class="btn" style="background:#fee2e2; color:#dc2626" onclick="finishTest()">Ukončit</button>
+    </div>
+
+    <div class="card" id="quiz-card">
+        <div class="question-meta">
+            <span id="q-num">Otázka 1</span>
+            <span id="mode-label">Režim: Procvičování</span>
+        </div>
+        <div class="question-text" id="q-text">Načítání...</div>
+        <div class="options" id="options"></div>
+        <div class="explanation" id="expl"></div>
+        
+        <div class="controls">
+            <button class="btn" onclick="prevQ()">← Předchozí</button>
+            <button class="btn btn-primary" onclick="nextQ()">Další →</button>
+        </div>
+    </div>
+
+    <div class="card results" id="results-card">
+        <h2>Test dokončen!</h2>
+        <div class="score-big" id="final-score">0%</div>
+        <p id="final-text"></p>
+        <button class="btn btn-primary" onclick="location.reload()">Začít znovu</button>
+    </div>
+</div>
+
+<script>
+// ZDE JSOU TVOJE DATA Z WORDU - NAPAŘSOVANÁ
+const database = [
+{q:"Označte chybný výrok o operačním systému Windows.",o:["Ve Windows 10 je účet Administrator ve výchozím nastavení zakázaný.","Pro automatické zálohování uživatelských složek knihoven v prostředí OS Windows 10 je určen modul Historie souborů.","Pokud vytvoříme uživatelský účet v prostředí Windows 10, stává se ve výchozím nastavení členem skupiny Users.","Členem domény Windows může být počítač s OS Windows 10 Home, Professional, Education."],a:"Členem domény Windows může být počítač s OS Windows 10 Home, Professional, Education."},
+{q:"Na souborovém serveru s OS Windows 2019 s úplným doménovým názvem  db.fast.com  byla nastavena sdílená složka  \\\\db\\store .\nToto sdílení reprezentuje složku  G:\\data . Přístup ke sdílené složce  \\\\db\\store  je pro členy skupiny  Everyone  nastaven na  Úplné řízení .\nPřístupová oprávnění NTFS pro  G:\\data  umožňují  Číst, Zapisovat, Zobrazovat obsah složky ,  Číst a spouštět, Měnit  skupině  Authenticated Users .\nSkupina  Sales  má nastaveno pro tuto složku oprávnění  Číst .\nNikol  je členkou skupiny  Sales  a členem skupiny  Domain   Users .\nJaká budou oprávnění, pokud se pokusí  Nikol  o síťový přístup ke složce  \\\\db\\store ?",o:["Úplné řízení","Žádná","Číst","Změnit"],a:"Změnit"},
+{q:"Které prohlášení o funkcích brány firewall v systému Windows Server 2019 je přesné?",o:["Automaticky blokuje veškerý datový provoz.","Nepodporuje příchozí pravidla.","Obsahuje předkonfigurovanou šablonu zabezpečení.","Integruje se výhradně s externími řešeními VPN."],a:"Obsahuje předkonfigurovanou šablonu zabezpečení."},
+{q:"Potřebuji zobrazit statistické informace a provozu svého počítače s operačním systémem Windows – otevřené porty, navázaná spojení, počty odeslaných paketů.",o:["route","ipconfig /all","netstat","localhost"],a:"netstat"},
+{q:"Jaký typ zálohy v prostředí OS Windows 2019 server je podporován kromě normální (úplné) zálohy?",o:["kopie","rozdílová","přírůstková","denní"],a:"přírůstková"},
+{q:"Pracuji na pracovní stanici označení WS04, která je součástí domény Windows.\nSíť využívá výchozí bránu, která je instalována na serveru označeném RO25 se statickou IP adresou 192.168.25.1.\nPokud zadám příkaz ping 192.168.25.1 je spojení vyhodnoceno jako funkční. Pokud zadám název serveru RO25 nemám žádnou odezvu.\nCo je příčinou tohoto stavu?",o:["Na serveru RO25 je upraveno nastavení firewallu – konkrétně chování protokolu ICMP. Z důvodu vyšší bezpečnosti jsou „skryty“ názvy počítačů.","Příčina je v tom, že pracovní stanice WS04, nemá z  neznámého důvodu v doméně účet.\n(Mohl být neúmyslně vymazán na řadiči domény). Proto pracovní stanice nemůže plně využívat síťových služeb.","V síti nefunguje služba DNS.","V síti nefunguje korektně služba DHCP. Došlo k přidělení názvu, ale není přidělena IP adresa."],a:"V síti nefunguje služba DNS."},
+{q:"Co bude první krok klienta DNS, aby provedl překlad názvu počítače na IP adresu?",o:["Klient DNS začne provádět všesměrové vysílání s využitím protokolu UDP, aby vyhledal DNS server.","Klient provede dotaz na nastavený alternativní DNS server.","Klient provede dotaz na primární DNS server.","Klient zkontroluje svou místní mezipaměť DNS resolveru."],a:"Klient zkontroluje svou místní mezipaměť DNS resolveru."},
+{q:"Která z následujících možností zvyšuje zabezpečení operačního systému Windows 10/11 tím, že detekuje neoprávněné změny v systému a brání jim?",o:["GAC (Guest Account Control)","MMC (Microsoft Management Console)","AAC (Administrative Account Control)","UAC (User Account Control)"],a:"UAC (User Account Control)"},
+{q:"Sdílíte složku v počítači se systémem Windows 10 s jiným uživatelem v rámci pracovní skupiny.\nJak můžete upravit konfiguraci počítače druhého uživatele pro usnadnění přístupu ke sdílené složce?",o:["Vytvořte oprávnění NTFS.","Vytvořte účinná oprávnění.","Namapujte sdílenou složku.","Vytvořte doménu."],a:"Namapujte sdílenou složku."},
+{q:"Který z následujících režimů OS Windows 2019 server pracuje s minimem služeb a funkcí?",o:["Poslední známá funkční konfigurace.","Ladící režim.","Obnovení adresářových služeb.","Nouzový režim."],a:"Nouzový režim."},
+{q:"Správcem sítě vám byla přidělena následující statická IPv4 adresa 222.17.18.125/26. Jaký bude tvar subsíťové masky?",o:["255.255.255.240","255.255.255.252","255.255.255.192","255.255.255.248"],a:"255.255.255.192"},
+{q:"V pracovní skupině máte počítač s OS Windows 10. Jaký je maximální počet souběžných připojení ke sdílené složce?",o:["20"],a:"20"},
+{q:"Na souborovém serveru s OS Windows 10 s úplným doménovým názvem  mydb.mycorp.com  byla nastavena sdílená složka  \\\\mydb\\personal .\nToto sdílení reprezentuje složku  E:\\files . Přístupová oprávnění NTFS pro  E:\\file s umožňují  Úplné řízení  skupině  Authenticated Users .\nPřístup ke sdílené složce  \\\\mydb\\personal  je pro členy skupiny  Sales  nastaven na  Odepřít .\nRobert  je členem skupiny  Sales  a členem skupiny  Users . Lokálně se přihlásil na počítač  mydb.mycorp.com .\nJaká budou jeho oprávnění, pokud se pokusí o přístup ke složce  E:\\files ?",o:["Číst","Žádná","Výchozí oprávnění NTFS pro složku. Číst, Číst a spouštět, Zobrazovat obsah složky.","Úplné řízení"],a:"Úplné řízení"},
+{q:"Sdílíte složku v počítači se systémem Windows 10 s jiným uživatelem v rámci pracovní skupiny.\nJak můžete upravit konfiguraci počítače druhého uživatele pro usnadnění přístupu ke sdílené složce?",o:["Vytvořte oprávnění NTFS.","Vytvořte účinná oprávnění.","Namapujte sdílenou složku.","Vytvořte doménu."],a:"Namapujte sdílenou složku."},
+{q:"Pomocí jaké klávesové kombinace spustíte správce úloh? Jako oddělovač mezi klávesami použijte znak \"+\", nepište mezery.",o:["CTRL+SHIFT+ESC"],a:"CTRL+SHIFT+ESC"},
+{q:"Kterým z následujících nástrojů můžete ukončit běžící proces v prostředí OS Windows? Vyberte nejpřesnější odpověď.",o:["správa počítače","výstrahy a protokolování výkonu","správce úloh","sledování systému"],a:"správce úloh"},
+{q:"Na počítači s OS Windows 10 došlo k pokusu instalace nového ovladače zvukové karty. Operace neproběhla korektně.\nJaký je nejrychlejší návrat k původní instalované verzi ovladače zvukové karty?",o:["Použiji ve Správci zařízení funkci Vrátit změny ovladače.","Ve Správci zařízení zakážu zařízení a provedu reinstalaci původními (staršími) ovladači.","Do mechaniky vložím instalační DVD Windows v pomocí funkce Plug and Play dohraji potřebné soubory z instalačního DVD.\n(Případně použiji jiné médium.)","Ve Správci zařízení odinstaluji ovladač a provedu instalaci původního ovladače."],a:"Použiji ve Správci zařízení funkci Vrátit změny ovladače."},
+{q:"V jakém typu síťového prostředí s OS Windows má každý počítač vlastní bezpečnostní databázi?",o:["asociace","pracovní skupina","konglomerát","doména"],a:"pracovní skupina"},
+{q:"Který z následujících programů dokáže zkomprimovat do jednoho souboru celé adresářové struktury?",o:["zip","gzip","compress","bzip2"],a:"zip"},
+{q:"Na souborovém serveru S1 s operačním systémem Windows je skrytě sdílená složka InstallApp.\nIP adresa serveru 192.168.10.5/24 a sdílená složka se nachází na disku Z:. Jaká je správná UNC cesta?",o:["\\\\S1\\Z:\\$InstallApp","\\\\S1\\Z:\\%InstallApp%","\\\\192.168.10.5\\InstallApp$","\\\\S1\\$InstallApp"],a:"\\\\192.168.10.5\\InstallApp$"},
+{q:"Která z následujících možností přesně popisuje funkci Zálohování systému Windows v systému Windows Server?",o:["Zálohuje pouze soubory na externích zařízeních.","Automaticky aktualizuje veškerý systémový software.","Poskytuje synchronizaci souborů mezi servery v reálném čase.","Umožňuje obnovu dat po haváriích disku."],a:"Umožňuje obnovu dat po haváriích disku."},
+{q:"Správcem sítě vám byla přidělena následující statická IPv4 adresa 10.138.14.25/29. Jaký bude tvar subsíťové masky?",o:["255.255.255.252","255.255.255.240","255.255.255.248","255.255.255.192"],a:"255.255.255.248"},
+{q:".Která z následujících funkcí šifruje diskový svazek v prostředí OS Windows 10? Chrání obsah v případě ztráty nebo odcizení",o:["BitLocker","AppLocker","BranchCache","Credential Guard"],a:"BitLocker"},
+{q:"Rozhodujete o nákup souborového serveru pro síť LAN. Označte položku, která má nejmenší důležitost pro správnou funkci.",o:["procesory","síťové rozhraní","diskový subsystém","operační paměť","monitor a grafický adaptér"],a:"monitor a grafický adaptér"},
+{q:"Jaký je minimální počet tiskových zařízení, abych mohl vytvořit v prostředí OS Windows fond tiskáren.",o:["1","2","3","Počet nehraje vůbec žádnou roli."],a:"2"},
+{q:"Označte doménu druhého řádu.",o:[".vs.clay.europa.com.",".hejkal.com.cz.",".co.uk.",".edu."],a:".co.uk."},
+{q:"Jaký  je nástroj příkazového řádku pro správu sítě dostupný v mnoha operačních systémech.\nSlouží pro dotazování na doménové jméno, IP adresu mapování nebo pro jiné vlastnosti DNS záznamu.",o:["nslookup"],a:"nslookup"},
+{q:"Na svém PC mám problémy v síťové komunikaci. Pokud zadám příkaz  ping  v kombinaci s úplným názvem síťové tiskárny  HP1L.firma.local.\nv místní síti LAN tak nemám žádnou odpověď. Ale při zadání řádkového příkazu  ping  s IPv4 adresou této síťové tiskárny   mám správnou odezvu.\nTento problém je pouze u této tiskárny a není u jiných koncových sítových zařízení. Označte příčinu.",o:["Na firewallu DNS serveru jsou zablokovány porty spojené s překladem názvů.","Na DNS serveru není nainstalována zóna pro překlad textových názvů na IP adresy.","Na DNS serveru není nainstalována zóna pro zpětný překlad.","V databázi DNS chybí záznamy typu A této tiskárny."],a:"V databázi DNS chybí záznamy typu A této tiskárny."},
+{q:"Skupině  DLMarketing  se nedá nastavit oprávnění ke složce  grm4.  Co je příčinou?",o:["Místní doménová skupina se nedá použít pro definování oprávnění na serveru Windows.","V operačním systému je vnitřní chyba. Není možné označit globální skupinu.","Skupině  DLMarketing  nastavujeme oprávnění v rámci lesa domén. V této situaci se musí použít  univerzální skupina.","Nastavení typu skupiny na  distribuční.  Musí se označit skupina zabezpečení."],a:"Nastavení typu skupiny na  distribuční.  Musí se označit skupina zabezpečení."},
+{q:"Jaké je doporučené jméno domény pro vnitřní privátní sítě?",o:[".local."],a:".local."},
+{q:"Uživatelé v organizační jednotce  Marketing  se nemohou přihlásit do domény z počítače  Asus06.  Co je příčinou?",o:["Stanice  Asus06  používá operační systém Windows 10 Home.","Uživatelé v organizační jednotce  Marketing  mají povolené ve vlastnostech svých účtů časové intervaly kdy se mohou přihlásit na jednotlivé stanice.\nStanice  Asus06  se teď nachází mimo tento interval.","Účet počítače je zakázaný. Musí se povolit.","Uživatelé v organizační jednotce  Marketing  mají pouze omezený počet stanic které mohou využívat. Stanice  Asus06  není v tomto seznamu.\nTo se projevilo zákazem tohoto počítače."],a:"Účet počítače je zakázaný. Musí se povolit."},
+{q:"Chtěl bych si otestovat spojení na webový server  www.alfa.com . Navíc potřebuji zjistit uzly, přes které procházejí pakety.\nOznačte vhodný příkaz v prostředí OS Windows.",o:["route","arp","tracert","ping"],a:"tracert"},
+{q:"Jaký typ záznamu se používá v DNS pro přiřazení IPv4 adresy hostiteli?",o:["A"],a:"A"},
+{q:"Na vaší pracovní stanici s operačním systémem Windows se objevily chyby na disku. Odstranění je možné pomocí příkazu...",o:["chkdsk","defrag","fsck","fdisk","sfc"],a:"chkdsk"},
+{q:"Služba DNS používá celou řadu záznamů. Napište označení záznamu s následujícími parametry:\n*zahajující záznam zónového souboru,\n*obsahuje jméno primárního serveru,\n*je tam  adresa elektronické pošty správce,\n*obsahuje časové parametry přenosu na sekundární server.",o:["SOA"],a:"SOA"},
+{q:"Označte příkazy, které umožní vyexportování obsahu Active Directory do souboru.",o:["dsquery","csvde","ldifde","dsget"],a:"csvde, ldifde"},
+{q:"Označte  nepravdivý  výrok.",o:["Organizační jednotky jsou ve výchozím nastavení chráněny proti náhodnému vymazání.","Pokud je OS Windows 2012 povýšen na řadič domény, místní uživatelské účty a skupiny zůstanou zachovány.","Přidání nového počítače do domény mohou provést členové doménové skupiny  Administrators  a  Domain Admins.","Uživatelským účtům v prostředí Windows 2012/2016/2019 není možné přidělit konkrétní stanice které budou moci používat."],a:"Uživatelským účtům v prostředí Windows 2012/2016/2019 není možné přidělit konkrétní stanice které budou moci používat."},
+{q:"Během spojování firem byly sloučeny původně samostatné organizace a jejich pobočky používající následující názvy –  cosi.eu, sever.cosi.eu, neco.com.\nPokud budou tyto domény propojeny, vznikne struktura označovaná v terminologii společnosti Microsoft jako  (doplňte) …",o:["strom","supersíť","trust","les"],a:"les"},
+{q:"Označte protokoly, které používají operační systémy řady Windows server pro správu objektů v rámci Active Directory a ověřování identity uživatelů.",o:["LDAP, IPSec","DAP, DNSSEC","DAP, Kerberos","LDAP, Kerberos"],a:"LDAP, Kerberos"},
+{q:"Označte příkaz pomocí kterého přidáte v rámci Active Directory skupinu se zabezpečením.",o:["dsrm","dsmod","dsadd","dsget"],a:"dsadd"},
+{q:"Označte  pravdivý  výrok.",o:["Pokud má uživatel v doméně vytvořený účet je členem skupiny  Domain Users.\nPředem vytvořené členství v jakékoliv doménové skupině umožňuje zařazení (i odstranění) počítače z domény.","Zařazení počítače do domény provede člen skupiny  Domain Admins.","Zařazení počítače do domény provede člen lokální skupiny  Administrators  na zařazovaném počítači.","Pracovní stanice může být současně členem  domény  i  pracovní skupiny ."],a:"Zařazení počítače do domény provede člen skupiny  Domain Admins."},
+{q:"Označte objekty, který  mohou  být součástí adresářové služby  Active Directory .",o:["sdílená složka","uživatel","kontakt","skupina","tiskárna"],a:"sdílená složka, skupina, uživatel,tiskárna,kontakt"},
+{q:"Server s OS Windows 2019 povýším na řadič domény. Označte další roli, která se instaluje současně s rolí řadiče domény (AD).",o:["AD Federation Services","DHCP","DNS","IIS"],a:"DNS"},
+{q:"Doménově lokální skupina může získávat oprávnění  (dokončete větu) ...",o:["pouze ve stromu domén kde byla vytvořena.","ve všech doménách kromě té kde byla vytvořena.","pouze ve vlastní doméně kde byla vytvořena.","v jakékoli doméně stromu nebo lesa Active Directory."],a:"pouze ve vlastní doméně kde byla vytvořena."},
+{q:"Označte objekty, který  mohou  být součástí adresářové služby  Active Directory . (Více správných odpovědí.)",o:["uživatel","počítač","tiskárna","sdílená složka","skupina"],a:"tiskárna, uživatel, skupina, počítač, sdílená složka"},
+{q:"Označte doporučený postup pro práce se skupinami v rámci  Active Directory.  (A=uživatel, G=globální skupina, DL=doménově lokální skupina, U=univerzální skupina, P=oprávnění.)",o:["A > DL >  U > P","A > DL > U < P","A > U > G < P","A > G > DL < P"],a:"A > G > DL < P"},
+{q:"Označte skupinu, která musí být ověřena globálním katalogem.",o:["globální","doménově lokální","universální","lokální"],a:"universální"},
+{q:"Který z následujících příkazů mi umožní vyhledání počítače v rámci AD na řadiči domény?",o:["dsget","dsquery","dsmod","dsrm"],a:"dsquery"},
+{q:"Vyberte protokol, který využívá adresářová služba  Active Directory.",o:["OpenLDAP","DAP","LDAP","X.500"],a:"LDAP"},
+{q:"Který z následujících výroků o  globální skupině  je správný?",o:["Globální skupina může získat oprávnění ve všech doménách stromu nebo lesa  Active Directory .","Globální skupina může získávat členy ze všech doména stromu (lesa)  Active Directory  a rovněž může získávat oprávnění ve všech doménách stromu nebo lesa  Active Directory .","Globální skupina může získat oprávnění pouze v doméně, kde byla vytvořena.","Členem globální skupiny nemohou být účty počítačů."],a:"Globální skupina může získat oprávnění ve všech doménách stromu nebo lesa  Active Directory ."},
+{q:"Označte příkaz pomocí kterého můžete vytvořit v rámci  Active Directory  účet pro nového uživatele.",o:["dsmod","dsget","dsadd","dsrm"],a:"dsadd"},
+{q:"Označte doporučený postup pro práce se skupinami v rámci  Active Directory.  (A=uživatel, G=globální skupina, DL=doménově lokální skupina, U=univerzální skupina, P=oprávnění.)",o:["A > DL > G > U > P","A > G > U > DL < P","A > U > DL > G < P","A > G > DL > U < P"],a:"A > G > U > DL < P"},
+{q:"Máte síť LAN, kde byla vytvořena doména  vampire.eu . V rámci konfigurace domény byly nastaveny zásady a předvolby GPO.\nOznačte počítač s operačním systémem, na který se budou zásady skupiny aplikovat.",o:["Dell 101 OS Windows 10 Home. Je členem pracovní skupiny  vampire.\nVyužívá síťové zdroje DNS, DHCP, sdílené programy a soubory v rámci domény.","FW1, OS Linux. Plní v doméně  vampire.eu  pro uživatele roli poštovního serveru.","Juno4, OS Windows 2019 Server. Funguje jako samostatný server .  Není členem domény  vampire.eu .\nSlouží ale k zálohování pracovních dat v rámci domény  vampire.eu.","HP4C OS Windows 10 Prof. Je členem domény  vampire.eu."],a:"HP4C OS Windows 10 Prof. Je členem domény  vampire.eu."},
+{q:"Označte pravdivý výrok.",o:["Pokud skupina počítačů sdílí společnou adresářovou databázi, jedná se doménu.","Člen místní skupiny  Users  může zařadit svůj počítač do domény.","Active Directory používá pro překlad názvů počítačů na IP adresy serverovou roli DHCP.","Pouze členové doménové skupiny   Administrators  mohou spravovat uživatelské účty v rámci domény."],a:"Pokud skupina počítačů sdílí společnou adresářovou databázi, jedná se doménu."},
+{q:"Kde může získat může získat oprávnění  globální skupina  ?",o:["Pouze ve stromu domén kde byla vytvořena.","Pouze ve vlastní doméně kde byla vytvořena.","V jakékoli doméně stromu nebo lesa Active Directory.","Ve všech doménách kromě té kde byla vytvořena."],a:"V jakékoli doméně stromu nebo lesa Active Directory."},
+{q:"Odstranění uživatelského účtu v rámci domény je možné příkazem ...  (doplňte)",o:["dsmod","dsrm","dsdel","dsget","dsquery"],a:"dsrm"},
+{q:"Jaký je účel služby Active Directory v systému Windows Server 2019/22?",o:["Správa uživatelských účtů a skupin.","Vytváření virtuálních počítačů.","Ukládání a správa dat.","Správa přístupu na internet."],a:"Správa uživatelských účtů a skupin."},
+{q:"Vaše řešení musí zabezpečit co nejvyšší odolnost vůči technickému selhání pevných disků. Z následujících variant vyberte nejlepší řešení. (Týká se zadání s disky 0-3 a MS Exchange)",o:["Disky1,2,3 převedu z dynamického na basic (běžný). Oddíl X: přesunu na Disk 0. Disk 1 a Disk 2 budou tvořit svazek RAID-1.\nOddíly C: a X: na Disku 0 budou součástí dalšího RAIDu-1 mezi Diskem 0 a Diskem 3. Zbylé nepřidělené úseky budou součástí rozloženého svazku.","Disk3 převedu na dynamický. Vytvořím RAID-1 mezi oddílem C: na disku C: použiji 400 GB z Disku 2. Vytvořím RAID-5.\nVyužiji 600 GB z nepřiděleného místo na Disku 0, Disku 1, Disku 2 a Disku 3. Zde bude instalován program MS Exchange.\nOddíl X: na Disku 1 a zbylých 200 GB na Disku 3 budou nakonfigurovány jako RAID 1. Zbylých 200 GB na Disku 1 zůstane jako jednoduchý svazek.","Disk 3 převedu na dynamický. Oddíl X: přesunu na Disk0. Disk 1 a Disk 2 budou tvořit svazek RAID1.\nOddíly C: a X: na Disku 0 budou součástí dalšího RAIDu 1 mezi Diskem 0 a Diskem 3. Zbylé nepřidělené úseky budou součástí prokládaného svazku.","Disk 3 převedu na dynamický. Vytvořím RAID-1 mezi oddílem C: na disku C: použiji 400 GB z Disku 2. Vytvořím RAID-5.\nVyužiji 600 GB z nepřiděleného místo na Disku 0, Disku 1, Disku 2. Zde bude instalován program MS Exchange.\nNa Disku 1 mi zůstalo ještě 200 GB nepřiděleného prostoru a má k dispozici plnou kapacitu Disku 3. Pomocí Správy disků zvětším velikost oddílu X: na 400 GB.\nVytvořím RAID-1 mezi oddílem X: a nepřiděleným prostorem na Disku 3. Zbylých 200 GB na Disku 3 zůstane jako jednoduchý svazek."],a:"Disk3 převedu na dynamický. Vytvořím RAID-1 mezi oddílem C: na disku C: použiji 400 GB z Disku 2. Vytvořím RAID-5.\nVyužiji 600 GB z nepřiděleného místo na Disku 0, Disku 1, Disku 2 a Disku 3. Zde bude instalován program MS Exchange.\nOddíl X: na Disku 1 a zbylých 200 GB na Disku 3 budou nakonfigurovány jako RAID 1. Zbylých 200 GB na Disku 1 zůstane jako jednoduchý svazek."},
+{q:"Jste správcem počítače se systémem Windows 2019... Na Disku 0 a Disku 1 je nepřidělený prostor... Jaký typ svazku můžete vytvořit? (Více možností)",o:["Svazek typu RAID-1. Jeho kapacita bude 500 GB.","Svazek typu RAID-0. Jeho kapacita bude 250 GB.","Svazek typu RAID-5. Jeho kapacita bude 250 GB.","Svazek typu RAID-0. Jeho kapacita bude 500 GB.","Svazek typu RAID-1. Jeho kapacita bude 250 GB.","Rozložený svazek. Jeho kapacita bude 500 GB."],a:"Svazek typu RAID-1. Jeho kapacita bude 250 GB.,Svazek typu RAID-0. Jeho kapacita bude 500 GB.,Rozložený svazek.\nJeho kapacita bude 500 GB."},
+{q:"Označte typ RAID co střídavě a rovnoměrně umisťuje data do oblastí na jednotlivých discích. Navíc jsou data zrcadlena pomocí RAID-1.",o:["RAID-4","RAID-5","RAID 1 + 0","RAID 0 + 1"],a:"RAID 0 + 1"},
+{q:"Který typ diskových jednotek nabízí lepší výkon a obvykle se nachází na serverech?",o:["MFM","RLL","SCSI","IDE"],a:"SCSI"},
+{q:"Který z typů RAID používá tři nebo více disků k zajištění odolnosti proti chybám?",o:["RAID-1","RAID-5","RAID-3","RAID-0"],a:"RAID-5"},
+{q:"Investoval jsem peníze do domácího úložiště... chci zvolit řešení, které zabezpečí odolnost vůči chybám disků.",o:["jednoduchý svazek","RAID-0","rozložený svazek","RAID-5","RAID-1"],a:"RAID-1, RAID-5"},
+{q:"Které z následujících tvrzení platí pro diskové svazky v prostředí OS Windows?",o:["Zrcadlený svazek duplikuje data z jednoho disku na druhý disk pro redundanci a odolnost proti chybám.","Rozložený svazek využívá volné místo dostupné na jednom disku.","Jednoduchý svazek se rozprostírá na více discích, maximálně 32.","Všechny uvedené výroky."],a:"Zrcadlený svazek duplikuje data z jednoho disku na druhý disk pro redundanci a odolnost proti chybám."},
+{q:"Jste správcem počítače se systémem Windows 2019... Který svazek umožňuje nejrychlejší operace zápisu do databáze.",o:["Svazek C:","Svazek F:","Svazek G:","Svazek D:"],a:"Svazek F:"},
+{q:"Kolik disků může maximálně obsahovat rozložený svazek při použití konfiguračních možností OS Windows?",o:["64","2","8","16","32"],a:"32"},
+{q:"Jste správcem počítače se systémem Windows 2012R2... Na server budete ukládat asi 500 GB dat a chcete mít záruku, že data nebudou ztracena, pokud některý z disků selže. Který se svazků byste měli použít.",o:["Svazek F:","Svazek G:","Svazek C:","Svazek D:"],a:"Svazek D:"},
+{q:"Jak velký úložný prostor budeme mít, pokud použijeme 8 HDD každý o kapacitě 2 TB v konfiguraci prokládaného svazku (RAID-0)?",o:["12 TB","8 TB","16 TB","14 TB"],a:"16 TB"},
+{q:"Který z následujících svazků může sloužit jako bootovací? (Pokud je vytvořen softwarově v OS Windows.)",o:["rozložený svazek","prokládaný svazek","zrcadlený svazek","prokládaný svazek s paritou"],a:"zrcadlený svazek"},
+{q:"Jak velký úložný prostor budeme mít, pokud použijeme čtyři HDD každý o kapacitě 2 TB v konfiguraci RAID-5?",o:["4 TB","6 TB","8 TB","2 TB"],a:"6 TB"},
+{q:"Byli jste pověřeni správou serveru... MS SQL server bude využívat nepřidělený volný prostor na discích... Z následujících možností vyberte nejlepší řešení.",o:["Disky nebudu převádět na dynamické, ponechám je v původní konfiguraci Basic.\nVytvořím svazek RAID-1 skládající se z disku C: na Disku0 a použiji 400 GB nepřiděleného prostoru na Disku 3. Dále vytvořím svazek RAID-5.\nTento svazek využije nepřidělený prostor na Disku 0 (600 GB), na disku Disku 1 (600 GB, 200 GB zůstává nepřidělených), na Disku 2 (600 GB, 200 GB zůstává nepřidělených) a na Disku 3 (zbylých 600 GB nepřiděleného místa).","Všechny disky převedu na dynamické. Vytvořím svazek RAID-1 skládající se z disku C: na Disku 0 a použiji 400 GB nepřiděleného prostoru na Disku 3. Dále vytvořím svazek RAID-5.\nTento svazek využije nepřidělený prostor na Disku0 (600 GB), na disku Disku 1 (600 GB, 200 GB zůstává nepřidělených), na Disku 2 (600 GB, 200 GB zůstává nepřidělených) a na Disku 3 (600 GB nepřiděleného místa).","Všechny disky převedu na dynamické. Vytvořím svazek RAID-1 skládající se z disku C: na Disku0 a použiji 400 GB nepřiděleného prostoru na Disku3.\nDále vytvořím svazek RAID-5. Tento svazek využije veškerý nepřidělený prostor na Disku0, Disku1, Disku2, Disku3.\nNezůstane vůbec žádný volný nepřidělený prostor.","Všechny disky převedu na dynamické. Vytvořím svazek RAID-1 skládající se z disku C: na Disku 0 a z 400 GB na Disku 3. Další svazek RAID-1 bude sestávat z nepřidělených míst na Disku 1 a Disku 2."],a:"Všechny disky převedu na dynamické. Vytvořím svazek RAID-1 skládající se z disku C: na Disku 0 a použiji 400 GB nepřiděleného prostoru na Disku 3. Dále vytvořím svazek RAID-5.\nTento svazek využije nepřidělený prostor na Disku0 (600 GB), na disku Disku 1 (600 GB, 200 GB zůstává nepřidělených), na Disku 2 (600 GB, 200 GB zůstává nepřidělených) a na Disku 3 (600 GB nepřiděleného místa)."},
+{q:"Je následující výrok pravdivý?\nPokud dochází ke krátkodobým výkyvům čítače %času procesoru na hodnotu 100 %, nepředstavuje to problém.",o:["Pravda","Nepravda"],a:"Pravda"},
+{q:"Označte položku kterou server nepotřebuje.",o:["grafická karta","síťové rozhraní","stránkovací soubor","operační paměť","diskový subsystém"],a:"grafická karta"},
+{q:"Která ze sledovaných komponent má nejvyšší podíl na nevyhovujícím stavu a měla by se vyměnit? (Paměť – Chyby stránek/s průměr 4200)",o:["Výměna CPU za výkonnější.","Výměna HDD za rychlejší.","Výměna síťové karty s přenosovou kapacitou 100 Mb/s za 1000 Mb/s.","Přidání dalšího modulu operační paměti. Celková hodnota operační paměti potom bude 8 GB.","Zvětšení hodnoty virtuální paměti."],a:"Přidání dalšího modulu operační paměti. Celková hodnota operační paměti potom bude 8 GB."},
+{q:"Pomocí interního programu Windows jste prováděli testování výkonu počítače... Označte odpověď, která správně popisuje slabé místo PC.",o:["Ze sledovaných údajů vyplývá, že nejvíce je zatížen HDD. Nasvědčuje tomu ukazatel % času disku a % času čtení disku.","Problematickým místem je síťové rozhraní. Hodnota odeslaných a přijatých bajtů je příliš vysoká.","Počítač má nedostatečně velkou operační paměť. Svědčí o tom ukazatel  Potvrzené bajty  a  Počet MB k dispozici.","Problematický je výkon procesoru. Parametry ukazují, že se počítač blíží k hranici své výkonnosti."],a:"Ze sledovaných údajů vyplývá, že nejvíce je zatížen HDD.\nNasvědčuje tomu ukazatel % času disku a % času čtení disku."},
+{q:"Jeden z parametrů který se sleduje je velikost dostupné fyzické paměti?\nPod jakou hodnotu by neměla její úroveň klesnout?",o:["5 %","15 %","20 %","10 %","30 %"],a:"5 %"},
+{q:"Čítač Paměť/Potvrzené bajty zastupuje množství potvrzené virtuální paměti... Podíl potvrzených bajtů a celkového objemu paměti by neměl přesahovat  (doplňte).",o:["70 %","85 %","95 %","80 %","90 %","75 %"],a:"75 %"},
+{q:"Pokud ukazuje čítač % času disku vysoké hodnoty, zatímco jsou hodnoty čítačů procesoru a síťového rozhraní nízké, může výkon snižovat pevný disk.",o:["Pravda","Nepravda"],a:"Pravda"},
+{q:"Máte k dispozici server s OS Windows 2019... Která ze sledovaných komponent má nejvyšší podíl na nevyhovujícím stavu a měla by se vyměnit? (CPU – % času CPU průměr 89)",o:["Výměna síťové karty s přenosovou kapacitou 100 Mb/s za 1000 Mb/s.","Přidání dalšího modulu operační paměti. Celková hodnota operační paměti potom bude 8 GB.","Výměna HDD za výkonnější.","Výměna CPU za výkonnější."],a:"Výměna CPU za výkonnější."},
+{q:"Čítač Systém/Délka fronty procesoru zobrazuje počet vláken, která čekají na zpracování... Pokud má tento čítač trvale hodnotu vyšší než  (vyberte správnou možnost)  vláken na procesor...",o:["2","20","15","5","10"],a:"10"},
+{q:"Který z následujících požadavků není možné splnit v doméně Windows prostřednictvím Zásad skupiny (GPO)?",o:["Zákaz instalace ovladačů tiskáren uživatelům domény.","Nastavení délky hesla pro uživatelé domény.","Přesměrování složky Dokumenty z lokálních disků uživatelů do sdílené složky na souborovém server.","Konfigurace libovolného prohlížeče na počítačích v rámci domény Windows."],a:"Konfigurace libovolného prohlížeče na počítačích v rámci domény Windows."},
+{q:"Zásady skupiny se nedají samostatně zálohovat. Musí se provést záloha celého počítače.\nJe to pravda?",o:["Pravda","Nepravda"],a:"Nepravda"},
+{q:"Kterou z níže uvedených možností auditování zvolíte pro sledování přístupu ke spustitelnému souboru?",o:["Auditovat události přihlášení.","Auditovat používání privilegií.","Auditovat přístup k objektům.","Auditovat události přihlášení k účtu."],a:"Auditovat přístup k objektům."},
+{q:"Je následující výrok pravdivý?\nPokud dojde k odstranění předvoleb GPO  je obnovena původní konfigurace.",o:["Pravda","Nepravda"],a:"Nepravda"},
+{q:"Filtry rozhraní WMI umožňují aplikovat zásady skupiny na počítače dle jejich hardwarových parametrů. Je to správně?",o:["Pravda","Nepravda"],a:"Pravda"},
+{q:"Která z níže uvedených skupin uživatelů  může  nastavovat zásady skupiny v rámci domény.",o:["Backup Operators","Enterprise Admins","Power Users","Server Operators","Account Operators"],a:"Enterprise Admins"},
+{q:"U Windows 2008 se poprvé objevily  zásady skupiny  a  předvolby zásad skupiny.\nOznačte správný výrok popisující možnosti nastavení zásad a předvoleb.",o:["Nastavení zásad skupiny jsou vynucená.","Zásad skupiny nastavené v rámci domény je možné vždy uživatelem zmodifikovat.","Zásady skupiny a předvolby obsahují stejná nastavení.","Předvolby i zásady se automaticky aktualizují."],a:"Nastavení zásad skupiny jsou vynucená."},
+{q:"Pomocí jakého příkazu mohu spustit  program na modifikaci místních zásad skupiny v prostředí OS Windows?",o:["gpedit.exe","gpedit.msc","cmd","gpedit.msi","mmc","msconfig"],a:"gpedit.msc"},
+{q:"Očíslujte, v jakém pořadí se uplatňují doménové a místní zásady GPO.",o:["GPO pro podřízenou organizační jednotku -> 5, místní objekty GPO definované lokálně na PC -> 1, objekty GPO pro lokalitu -> 2, GPO pro organizační jednotku -> 4, objekty GPO pro doménu -> 3"],a:"GPO pro podřízenou organizační jednotku -> 5, místní objekty GPO definované lokálně na PC -> 1, objekty GPO pro lokalitu -> 2, GPO pro organizační jednotku -> 4, objekty GPO pro doménu -> 3"},
+{q:"Máte síť LAN, kde byla vytvořena doména  vampire.eu . V rámci konfigurace domény byly nastaveny zásady a předvolby GPO.\nOznačte počítač s operačním(mi) systém(y), na které se  nebudou  zásady skupiny aplikovat.",o:["Dell 101 s OS Windows 10 Home. Je členem pracovní skupiny  vampire.eu.\nVyužívá síťové zdroje DNS, DHCP, sdílené programy a soubory v rámci domény.","HP4C OS Windows 10 Prof. Je členem domény  vampire.eu.","Juno4, OS Windows 2012R2 – není v roli řadiče domény, ale je členem domény  vampire.eu.","FW1, OS Linux. Plní v doméně  vampire.eu  roli firewallu."],a:"Dell 101 s OS Windows 10 Home. Je členem pracovní skupiny  vampire.eu.\nVyužívá síťové zdroje DNS, DHCP, sdílené programy a soubory v rámci domény., FW1, OS Linux. Plní v doméně  vampire.eu  roli firewallu."},
+{q:"Pokud zapnete svou pracovní stanici, která je členem domény s OS Windows 2012/2016/2019 zpracovávají se zásady skupiny v určitém pořadí... Označte zásadu, která bude aplikována na vaší stanici jako první?",o:["Zásady skupiny na úrovni lokality.","Zásady skupiny na úrovni podřízené organizační jednotky.","Zásady skupiny na úrovni domény.","Zásady skupiny na úrovni organizační jednotky.","Místní zásady skupiny definované na lokálním PC."],a:"Místní zásady skupiny definované na lokálním PC."},
+{q:"V rámci GPO chcete sledovat pokusy o změny nastavení auditování a přiřazení uživatelských práv. Označte volbu, která splní tento požadavek.",o:["Auditovat změny zásad.","Auditovat události přihlášení.","Auditovat přístup k adresářové službě.","Auditovat používání oprávnění."],a:"Auditovat změny zásad."},
+{q:"Provedl jsem změno v GPO na úrovni domény. Po které z následujících operací se  nebudou  zásady aplikovat na pracovní stanice a servery v rámci domény?",o:["zadání příkazu GPRESULT","spuštění počítače","zadání příkazu GPUPDATE","dle nastavení časového intervalu aktualizace zásad skupiny v GPO"],a:"zadání příkazu GPRESULT"},
+{q:"Označte operaci, kterou  není  možné provádět pomocí zásad skupiny.",o:["Nastavení auditování přístupů do sítě.","Nastavení Plochy na uživatelských stanicích.","Vytváření skupin uživatelů v AD (Active Directory).","Přesměrování složky  Dokumenty  z profilu uživatele na lokální stanici do určeného úložiště na serveru.","Nastavení IPv4/IPv6 adres u pracovních stanic."],a:"Vytváření skupin uživatelů v AD (Active Directory)., Nastavení IPv4/IPv6 adres u pracovních stanic."},
+{q:"Předvolby GPO se dají měnit z uživatelského rozhraní.",o:["Pravda","Nepravda"],a:"Pravda"},
+{q:"V rámci GPO chcete sledovat úspěšné i neúspěšné pokusy odstranění souborů ve složce. Označte volbu, která splní tento požadavek.",o:["Auditovat přístup k objektům.","Auditovat přístup k adresářové službě.","Auditovat události přihlášení.","Auditovat používání oprávnění."],a:"Auditovat přístup k objektům."},
+{q:"Vytvořím zásadu skupiny s názvem  Security  na úrovni domény Windows 2012... Potřebujete dosáhnout stavu, aby nastavení zásad skupiny v jednotce Sekce1 nebylo ovlivněno konfigurací zásad skupiny na úrovni domény.",o:["Nebudu dělat vůbec nic, protože pokud začnu konfigurovat parametry zásad skupiny na úrovni  Sekce1 , nebudou se přenášet parametry z domény a nadřízené organizační jednotky.","Na úrovni zásad skupiny organizační jednotky  Sekce1  aktivuji položku  Zablokování dědičnosti .","Na úrovni zásad skupiny domény  Security  aktivuji položku  Zablokování dědičnosti .","Na úrovni zásad skupiny organizační jednotky  Sekce1  aktivuji položku  Vynucené ."],a:"Na úrovni zásad skupiny organizační jednotky  Sekce1  aktivuji položku  Zablokování dědičnosti ."},
+{q:"Který z následujících výroků o Zásadách skupiny (GPO) v doméně s operačním systémem Windows 2019 je  nepravdivý .",o:["GPO umožňují spouštění skriptů. Skripty mohou být vytvořeny pomocí příkazů příkazového řádku, nebo PowerShellu.","GPO umožňuje instalaci programů. Je možné použít nejenom instalační programy Windows (.msi), ale operační systém akceptuje instalační soubory ve formátu .exe, .cmd, .bat.","Pomocí GPO se dají namapovat sdílené složky na klientské počítače.","GPO umožňují konfiguraci interního firewallu na členských počítačích v doméně Windows."],a:"GPO umožňuje instalaci programů. Je možné použít nejenom instalační programy Windows (.msi), ale operační systém akceptuje instalační soubory ve formátu .exe, .cmd, .bat."},
+{q:"Označte nesprávný výrok o protokolu DHCP v síti s protokolem IPv4.",o:["Pokud chci provést pro klienta rezervaci IPV4 adresy, musím znát jeho MAC adresu.","Typicky se pomocí DHCP nastavují parametry – IPv4 adresa, subsíťová maska, výchozí brána, název domény, IPv4 adresa DNS serveru.","Přidělení síťové konfigurace klientovi probíhá ve čtyřech krocích – DHCPDISCOVER, DHCPOFFER, DHCPREQUEST, DHCPACK.","Pokud DHCP klient nezíská z DHCP serveru síťovou konfiguraci, začne používat link-local adresu ze sítě 127.0.0.0/8."],a:"Pokud DHCP klient nezíská z DHCP serveru síťovou konfiguraci, začne používat link-local adresu ze sítě 127.0.0.0/8."},
+{q:"V síťové konfiguraci počítače s OS Windows potřebuji zjistit IP adresu mého DHCP serveru.\nKterý z následujících příkazů mi to umožní?",o:["nslookup","netstat","tracert","ipconfig /all","ping 127.0.0.1"],a:"ipconfig /all"},
+{q:"Pokud chci vytvořit na DHCP serveru rezervaci musím určit IPv4 adresu, která se bude klientskému počítači trvale přidělovat.\nK jeho jednoznačné identifikaci slouží jeho MAC adresa.",o:["Pravda","Nepravda"],a:"Pravda"},
+{q:"Na jakém portu přijímá server DHCP požadavky od klienta. (Používáme protokol IPv4.)",o:["TCP/68","UDP/67","UDP/68","UDP,TCP/67","TCP/67","DHCP/67"],a:"UDP/67"},
+{q:"Jaké je správné pořadí při výměně zpráv mezi serverem DHCP a klientem?",o:["DHCPACK -> 4, DHCPOFFER -> 2, DHCPDISCOVER -> 1, DHCPREQUEST -> 3"],a:"DHCPACK -> 4, DHCPOFFER -> 2, DHCPDISCOVER -> 1, DHCPREQUEST -> 3"},
+{q:"Následující výpis konfigurace Linuxového  DHCP serveru který pracuje v síti s adresou 10.8.0.0/24... DHCP server nefunguje. Kde je chyba?",o:["Subsíťová maska ve tvaru 255.255.255.0 je špatně. Pro uvedenou konfiguraci by měla být ve tvaru 255.255.255.240.","Na konci řádků nemůže být znak středník(;) ale dvojtečka (:).","Chybná adresa sítě.","Rozsah adres musí být správně zapsán ve tvaru:\nrange 10.8.8.10-10.8.8.140","Uvedená konfigurace je v pořádku. Nefunkčnost služby DHCP má na svědomí chyba někde jinde.","Rozsah adres musí být správně zapsán ve tvaru:\nrange 10.8.0.11 10.8.0.140","Subsíťová maska ve tvaru 255.255.255.0 je špatně. Pro uvedenou konfiguraci by měla být ve tvaru 255.255.255.192."],a:"Rozsah adres musí být správně zapsán ve tvaru:\nrange 10.8.0.11 10.8.0.140"},
+{q:"Na jakém portu přijímá klient DHCP komunikaci od serveru DHCP. (Používáme protokol IPv4.)",o:["TCP/68","TCP/67","UDP,TCP/67","UDP/103","UDP/67","UDP/68","DHCP/67"],a:"UDP/68"},
+{q:"Jste správce sítě s adresou 172.16.0.0/20. Na jedné ze stanic se objevila IP adresa 169.254.10.15/16.\nJak se nazývá funkce která tuto adresu přidělila?",o:["Automatic Private IP Addressing"],a:"Automatic Private IP Addressing"},
+{q:"Který z následujících příkazů odstraní síťovou konfiguraci přidělenou DHCP serverem?",o:["ipconfig /renew","ipconfig /flushdhcp","ipconfig /release","netsh dhcpconfig erase"],a:"ipconfig /release"},
+{q:"Kterou z následujících položek nedokáže přidělit DHCP server?",o:["IPv4 adresa DNS serveu.","Fyzická (MAC) adresa klientského počítače.","Instalace/aktualizace ovladače zařízení.","IPv4 adresa výchozí brány.","IPv4 adresa časového serveru.","Subsíťová maska.","IPv4 adresa","Název domény."],a:"Fyzická (MAC) adresa klientského počítače.,\nInstalace/aktualizace ovladače zařízení."},
+{q:"Jaký bude název zóny pro zpětný překlad domény  cosi.net  na DNS serveru ?  Adresa sítě v této doméně  je 172.30.6.0/24.",o:["172.30.6.in-addr.apra","6.30.172.net.cosi","6.30.172.in-addr.apra","cosi.net.in-addr.apra"],a:"6.30.172.in-addr.apra"},
+{q:"Označte  nepravdivý  výrok o DNS.",o:["Windows DNS server podporuje dynamickou aktualizaci záznamů.","Primární a sekundární servery jsou autoritativní servery pro danou zónu.","Primární a sekundární DNS servery jsou rovnocenné. Na obou se dají provádět manuální úpravy záznamů.","Služba DNS používá pro komunikaci protokoly TCP/53 a UDP/53."],a:"Primární a sekundární DNS servery jsou rovnocenné. Na obou se dají provádět manuální úpravy záznamů."},
+{q:"Pro svou funkci musí mít služba DNS nastavenou na firewallu příslušnou kombinaci protokolů a portů transportní vrstvy. Označte správnou variantu.",o:["TCP, UDP/56","IP, TCP, UDP/53","UDP/53","TCP, UDP/53"],a:"TCP, UDP/53"},
+{q:"Který z následujících typů záznamů DNS se používá k převodu IPv4/IPv6 adresy na jméno hostitele?",o:["CNAME","SRV","A a AAAA","PTR","SOA","NS"],a:"PTR"},
+{q:"Který z následujících záznamů používaný v DNS převádí názvy hostitelů na adresy IPv6?",o:["SRV","TXT","NS","PTR","AAAA","SOA","MX","A"],a:"AAAA"},
+{q:"Jaký systém se používá k překladu URL https://www.auta.cz na IP adresu?",o:["WINS","DHCP","DNS","ARP"],a:"DNS"},
+{q:"Označte  chybný výrok  týkající se rekurzivního DNS serveru.",o:["Rekurzivní DNS server se také stará o validaci DNSESC. (Pokud tuto technologii server podporuje.)","Server pro ně příslušný záznam získá rekurzivními dotazy u autoritativních DNS serverů a po stanovenou dobu (definovanou pomocí parametru TTL) je má uloženy v cache, aby mohl odpovídat klientům rychleji a šetřil zatížení serverů autoritativních.","Rekurzivní server je podobně jako primární a sekundarní server DNS autoritativní.","Rekurzivní server získává DNS záznamy  dotazy u autoritativních DNS serverů"],a:"Rekurzivní server je podobně jako primární a sekundarní server DNS autoritativní."},
+{q:"Označte generické TLD (Top Level Domain).",o:[".de",".org",".at",".edu",".mil"],a:".org, .edu, .mil"},
+{q:"Na obrázku máte soubor, jehož funkce souvisí s překladem názvů. Jak se tento soubor jmenuje.",o:["lmhost","Jedná se o zónový soubor DNS. Název je odvozen od názvu domény. Přípona je ale vždy DNS.","hostname","hosts"],a:"hosts"},
+{q:"Za jak dlouho označí sekundární server své záznamy za neplatné pokud se mu nepodaří kontaktovat primární server?",o:["1 hodina, položka  minimum (default) TTL","1 hodina, položka  TTL for this records","10 minut","15 minut","1 den"],a:"1 den"},
+{q:"Označte DNS záznam, který definuje časový interval přenosu údajů mezi primárním a sekundárním serverem.",o:["A","SOA","PTR","NS","AAAA"],a:"SOA"},
+{q:"Který z následujících záznamů používaný v DNS převádí názvy hostitelů na adresy IPv4?",o:["SRV","AAAA","SOA","PTR","A","MX"],a:"A"},
+{q:"Tento záznam DNS oznamuje úplný kvalifikovaný název a prioritu serveru pro příjem elektronické pošty pro danou doménu. Označte jej.",o:["SOA","MX","NS","SRV","A nebo AAAA"],a:"MX"},
+{q:"Při konfiguraci služby DNS můžeme nastavit  dynamické  aktualizace. Aby byla tato možnost funkční je nutná spolupráce se službou ...",o:["ARP","Žadná další služba se nepotřebuje, stačí povolení volby v rámci DNS.","GPO","Active Directory Domain Service","DHCP"],a:"DHCP"},
+{q:"Jak se jmenuje serverová role, která automaticky přiděluje klientům IP adresy (+další síťové parametry)?",o:["DHCP","LLMNR","ARP","DNS","RARP"],a:"DHCP"},
+{q:"Který typ DNS záznamu překládá IPv4 adresy na název hostitele?",o:["SOA","PTR","AAAA","A"],a:"PTR"},
+{q:"Označte doménu druhé úrovně (SLD – Second Level Domain).",o:["nic.cz.","mail.nic.cz.","cz."],a:"nic.cz."},
+{q:"Označte typ DNS záznamu obsahující časové údaje o přenosu dat na sekundární servery.",o:["CNAME","NS","SRV","TXT","SOA"],a:"SOA"},
+{q:"Tento záznam označuje jméno autoritativního DNS serveru pro danou doménu. Který to je?",o:["MX","NS","CNAME","SOA"],a:"NS"},
+{q:"Na vrcholu hierarchické struktury DNS se nacházejí kořenové (root) servery. Kolik jich je?",o:["13","27","48","30","34"],a:"13"},
+{q:"Jak se jmenuje  soubor používaný k překladu názvů hostitelů na  IP adresy ?",o:["lmhostsname","dns","hosts","wins"],a:"hosts"},
+{q:"Označte  pravdivý  výrok o DNS.",o:["Kořenové servery DNS spravují všechny domény v Internetovém prostoru.","DNS server Windows 2019/2022 se dá použít pro klienty s OS Linux.","Záznam MX označuje autoritativní server pro danou zónu.","Název počítače NS1 je příkladem plně specifikovaného doménového jména (FQDN) počítače v síti, kde se používá DNS server."],a:"DNS server Windows 2019/2022 se dá použít pro klienty s OS Linux."},
+{q:"Pracujete v Linuxovém systému... sk1.sh:příkaz nebyl nalezen\nCo je příčinou chyby na následujícím řádku?",o:["Soubor sk1.sh má chybně nastavená oprávnění.","Proměnná prostředí PATH neobsahuje domovský adresář.","Soubor sk1.sh není spustitelný pro aktuálního uživatele.","Soubor nemůže mít příponu .sh ale .exe. To univerzálně označuje spustitelné soubory."],a:"Proměnná prostředí PATH neobsahuje domovský adresář."},
+{q:"V prostředí OS Linux potřebujete odstranit skupinu  sk1?  Označte příkazy, které to umožní.",o:["groups | del sk1","delgroup sk1","groupmod -d sk1","groupdel sk1"],a:"delgroup sk1, groupdel sk1"},
+{q:"Jak zkontrolujete v Linuxu využití místa na disku v adresáři  /sql/prog ?",o:["space /sql/prog","df /sql/prog","du /sql/prog","ls -d /sql/prog"],a:"du /sql/prog"},
+{q:"Který příkaz se používá v Linuxu k monitorování výkonu systému v reálném čase?",o:["top","performance","uptime","monitor"],a:"top"},
+{q:"Co zobrazuje Linuxový příkaz id?",o:["Informace o uživateli a skupině pro aktuálního uživatele","ID hardwaru","ID systému","ID procesu příkazu"],a:"Informace o uživateli a skupině pro aktuálního uživatele"},
+{q:"Uložte prvních pět řádků souboru  error.log  do nového souboru  e1.txt.",o:["$ file -5 error.log > e1.txt","$ cat -5 error.log > e1.txt","$ head -5 error.log => e1.txt","$ head -5 error.log > e1.txt"],a:"$ head -5 error.log > e1.txt"},
+{q:"V souboru  error.log  chcete najít řetězec znaků  login . Označte Linuxový příkaz, který to umožní.",o:["cat error.log > find login","cat error.log | find login","cat error.log | grep login","query error.log login"],a:"cat error.log | grep login"},
+{q:"Označte Linuxový příkaz, který zabrání všem uživatelům, aby nesmazali soubor  finance.doc  v adresáři  /home/bend.",o:["chmod ugo-w finance.doc","chmod ug-w finance.doc","chmod a-w /home/bend","chmod a+w /home/bend"],a:"chmod a-w /home/bend"},
+{q:"Spravujete Linuxový server, kde se nachází adresář  /Prog/SQL ... Celou adresářovou strukturu  /Prog/SQL  včetně vnořených souborů a dalších adresářů potřebujete odstranit. Jak toho dosáhnete?",o:["cd / ; rm /Prog/SQL","rmdir -R /Prog/SQL","rm -r Prog/SQL","rm -R /Prog/SQL"],a:"rm -R /Prog/SQL"},
+{q:"Ve vašem aktuálním adresáři je soubor  form.  Jak zjistíte formát tohoto souboru .",o:["$ format form","$ ls -f form","$ file form","$ whatis form"],a:"$ file form"},
+{q:"Každý pátek v 23:15 bude všechny soubory v adresáři  /prog1/js  archivovány programem  tar . Archiv bude komprimován pomocí programu gzip... Jaká poslopnost příkazů mne dovede ke splnění úkolu?",o:["$ crontab 15 23 * * 5\n...\ntar -czf /prog1/js/js.tar.gz /prog1/js/*\n:wq","$ crontab -e\n...\n15 23 * * 6 tar -cjf /prog1/js/js.tar.gz /prog1/js/*\n:wq","$ crontab -e\n...\n15 23 * * 5 tar -czf /prog1/js/js.tar.gz /prog1/js/*\n:wq","$ at 23:15 Fri\nat > tar -czf /prog1/js/js.tar.gz /prog1/js/*\nCtrl+D"],a:"$ crontab -e...15 23 * * 5 tar -czf /prog1/js/js.tar.gz /prog1/js/*:wq"},
+{q:"Linux může využívat celou řadu textových editorů. Označte program, který do této skupiny nepatří.",o:["nano","emacs","vim","bind"],a:"bind"},
+{q:"Linux používá řadu verzí GUI. Označte položku, která mezi ně nepatří.",o:["Unity","awk","KDE","GNOME"],a:"awk"},
+{q:"Vaším aktuálním adresářem je  /home/denis.  V adresáři  /DB/SQL   je soubor  conf.xml.  Jak vytvoříte z tohoto adresáře symbolický odkaz  na tento soubor? Název odkazu  conf.",o:["ln  /DB/SQL/conf.xml conf","ln -s /DB/SQL/conf.xml conf","ln -s  /home/denis/conf /DB/SQL/conf.xml","ln -s /DB/SQL/conf.xml /home/denis/conf"],a:"ln -s /DB/SQL/conf.xml conf, ln -s /DB/SQL/conf.xml /home/denis/conf"},
+{q:"Označte položku, která nepatří mezi ostatní. (JFS, ext4, emacs, XFS, ext3)",o:["JFS","ext4","emacs","XFS","ext3"],a:"emacs"},
+{q:"Jak přejmenujte adresář  zal1  na  zal4 ?",o:["$ ren zal1 zal4","$ mv zal1 zal4","$ rename zal1 zal4","$ rn zal1 zal4","$ mv zal4 zal1"],a:"$ mv zal1 zal4"},
+{q:"Napište identifikační číslo pozastaveného procesu.\nPID PPID S CMD\n987 2354 T tar",o:["987"],a:"987"},
+{q:"Na svém počítači s OS Linux jste získali výpis spuštěných procesů. Který znak označujíe spící proces?",o:["Z","T","S","R"],a:"S"},
+{q:"Odstraňte adresář  /orf.  Adresář není prázdný, obsahuje další podadresáře a soubory. Vaším aktuálním adresářem je  /doc1/texty.",o:["$ rm -R /orf","$ rmdir  /orf","$ rm -r /orf","$ rmdir  -a /orf","$ rmdir -R /orf"],a:"$ rm -R /orf, $ rm -r /orf"},
+{q:"V Linuxu zadáte příkaz  chmod u+s /usr/sbin/trackdata . Co znamená znak „ s “ v příkazu?",o:["sgid bit","sticky bit","suid bit","ssid"],a:"suid bit"},
+{q:"Chcete najednou prázdně adresáře  k1, k2, k3 . Jak toho dosáhnete? (Všechny uvedené adresáře jsou podadresáře vašeho aktuálního adresáře.)",o:["$ rmdir \"k1 k2 k3\"","$ rmdir k1 , rmdir k2 ,rmdir k3","$ rmdir k1 ; rmdir k2 ; rmdir k3","$ rmdir k1 ; k2 ; k3","$ rmdir k1 k2 k3"],a:"$ rmdir k1 k2 k3, $ rmdir k1 ; rmdir k2 ; rmdir k3"},
+{q:"Který příkaz se v Linuxu používá k extrahování souboru  file.tar.gz ?",o:["untar file.tar.gz","gzip -d file.tar.gz","extract file.tar.gz","tar -xzf file.tar.gz"],a:"tar -xzf file.tar.gz"},
+{q:"Potřebujete podrobnější údaje k příkazu  echo . Co zadáte do příkazového řádku  pro zobrazení informací týkajících se tohoto příkazu v manuálových stránkách?",o:["man echo"],a:"man echo"},
+{q:"Jak odstraníte soubor  fx?.html .",o:["$ rm fx\\?.html","$ rm 'fx?.html'","$ rm fx/?.html","$ rm \"fx?.html\"","$ sudo rm fx?.html"],a:"$ rm fx\\?.html"},
+{q:"Pomocí jakého příkazu se zjišťuje velikost, využitý prostor a volný prostor v diskové oblasti?",o:["du","fsck","diskmemory","df"],a:"df"},
+{q:"Chcete zobrazit stromovou strukturu adresářů. Dosáhnete toho příkazem  (doplňte) ...",o:["tree"],a:"tree"},
+{q:"Nevíte jak se používá příkaz  cp.  Jak zobrazíte nápovědu?",o:["cp --help"],a:"cp --help"},
+{q:"Jaký bude nejvhodnější souborový systém určený pro práci se soubory na lokálním disku pracovní stanice s OS Linux...",o:["Ext4","NFS","ReisenFS","JFS"],a:"Ext4"},
+{q:"Jakou hodnotu má UID uživatele root?",o:["0"],a:"0"},
+{q:"Potřebujete zobrazit aktuální systémové datum a čas. Případně provést změnu. Umožní vám to příkaz  (doplňte) ...",o:["date"],a:"date"},
+{q:"Která z následujících položek nepatří mezi ostatní.",o:["GNOME","Midnight Commander","Unity","KDE"],a:"Midnight Commander"},
+{q:"Linux ukládá informace o uživatelích v souboru. Napište jeho název a absolutní cestu k němu.",o:["/etc/passwd"],a:"/etc/passwd"},
+{q:"Máte soubor  person.txt.  Jak musíte upravit jeho název, aby se nezobrazoval v adresáři při použití příkazu  ls.",o:[".person.txt"],a:".person.txt"},
+{q:"Příkaz který umožní zobrazit jméno pracovní stanice je ...  (doplňte)",o:["hostname"],a:"hostname"},
+{q:"Označte příkazy umožňující zjistit nejaktivnější procesy.",o:["jobs","atop","top","htop","ps"],a:"top, atop, htop"},
+{q:"Třetí zařízení s řadičem SATA, čtvrtá disková oblast bude označeno…",o:["sfd4","hdc4","scd4","sdc4"],a:"sdc4"},
+{q:"Linux ukládá zašifrovaná hesla uživatelů v souboru. Napište jeho název a absolutní cestu k němu.",o:["/etc/shadow"],a:"/etc/shadow"},
+{q:"Pomocí jakého příkazu můžete změnit uživateli heslo?",o:["passwd"],a:"passwd"},
+{q:"Jaké je jméno prvního spuštěného procesu v Linuxu?",o:["init"],a:"init"},
+{q:"Označte nejnovější nestabilní verzi jádra Linuxu.",o:["5.5.1-38-generic","5.4.3-50-generic","5.3.11-57-generic","5.3.15-45-generic"],a:"5.5.1-38-generic"},
+{q:"Nevíte v jakém adresáři adresářové struktury se nacházíte. Pomocí jakého příkazu je to možné zjistit?",o:["pwd"],a:"pwd"},
+{q:"Aktuální uživatel chci zjistit skupiny kde je členem. Nejrychleji toho dosáhne příkazem...",o:["groups"],a:"groups"},
+{q:"Potřebujete zobrazit obsah souboru kde je uložen seznam skupin. Jak dosáhnete tohoto výstupu?",o:["cat /etc/group"],a:"cat /etc/group"},
+{q:"V aktuálním adresáři máte soubor  img.php . Jak zjistíte oprávnění k touto souboru?",o:["ls -l img.php"],a:"ls -l img.php"},
+{q:"Jaký příkaz umožní pouze jednorázové spuštění naplánované úlohy?",o:["at"],a:"at"},
+{q:"Označte  nepravdivý  výrok. (Linux FS)",o:["Administrativní informace má každý soubor uloženy ve svém  i-uzlu (i-node) .","Lokální sokety slouží ke komunikaci procesů v rámci síťového prostředí.","Vlastnost žurnálování v souborovém systému umožňuje rychlou rekonstrukci dat v případě havárie .","Adresář  /var  slouží pro data, která se během života systému dynamicky mění."],a:"Lokální sokety slouží ke komunikaci procesů v rámci síťového prostředí."},
+{q:"Jaký příkaz umožní přechod z libovolného podadresáře do kořenového adresáře?",o:["cd /"],a:"cd /"},
+{q:"Kromě manuálovách stránek je součástí Linuxu hypertextový informační systém, který má obdobnou funkci. Jak se nazývá?",o:["info"],a:"info"},
+{q:"Jak zobrazíte v Linuxu spuštěné úlohy?",o:["jobs"],a:"jobs"},
+{q:"Označte příkazy, které umožní změnit prioritu procesu.",o:["%fg  hodnota úrovně priority","renice","top  + , nebo top -","nice","%bg  hodnota úrovně priority","jobs  s číslem priority"],a:"nice, renice"},
+{q:"Kolik znaků může maximálně obsahovat uživatelské jméno v Linuxu.",o:["32"],a:"32"},
+{q:"U aktuálního uživatele potřebuji zobrazit členství ve skupinách. Dosáhnu toho příkazem  (doplňte) ...",o:["groups"],a:"groups"},
+{q:"Potřebujete zjistit IPv4/IPv6  adresu na serveru s OS Windows. Napište příkaz v základní podobě.",o:["ipconfig"],a:"ipconfig"},
+{q:"Správcem sítě vám byla přidělena následující statická IPv4 adresa 222.17.18.125/26. Jaký bude tvar subsíťové masky?",o:["255.255.255.248","255.255.255.240","255.255.255.252","255.255.255.192"],a:"255.255.255.192"},
+{q:"Váš počítač bude používat protokol IPv6. Označte správný formát IPv6 adresy.",o:["2001:db8:3241::1/64","2001::db8:4581::1/64","2001%db8%9990%%1/64","2001.db8.819f..1/64","2001:db8:0g21::1/64"],a:"2001:db8:3241::1/64"},
+{q:"Máte k dispozici IPv6 adresu –  2001:0000:0000:0000:00ad:0000:0000:4600/64 . Jak ji mohu co nejefektivněji zkrátit?",o:["2001::ad:0:0:46/64","2001::ad::4600/64","2001::ad:0:0:4600/64","2001:0:0:0:00ad:0:0:4600/64"],a:"2001::ad:0:0:4600/64"},
+{q:"Potřebujete zjistit IPv4/IPv6  adresu na Linuxovém serveru. Napište příkaz v základní podobě.",o:["ip"],a:"ip"},
+{q:"Na serveru v síti LAN nastavujete firewall. Server bude v síti plnit roli DHCP, DNS serveru.\nOznačte kombinaci protokolu a portu, který pro splnění těchto funkcí  nepotřebujete .",o:["TCP/53","UDP/67","UDP/68","UDP/53"],a:"UDP/68"},
+{q:"Pomocí jakého příkazu zobrazíte v prostředí OS Linux, Windows směrovací tabulku.",o:["ipconfig","netstat","nslookup","arp"],a:"netstat"},
+{q:"Která z následujících IPv4 adres  není  privátní adresa určená pro koncové zařízení?",o:["72.16.36.45/16","10.4.24.24/8","192.168.0.3/24","200.23.34.120/24"],a:"200.23.34.120/24"},
+{q:"Která z následujících IPv4 adres je privátní adresa určená pro koncové zařízení?",o:["172.16.0.0/24","172.12.36.45/16","192.168.10.255/24","10.254.124.224/24"],a:"10.254.124.224/24"},
+{q:"Na serveru v síti LAN nastavujete firewall. Server bude v síti plnit roli webového (podpora protokolu http, https), DNS serveru.\nOznačte kombinaci protokolu a portu, který pro splnění těchto funkcí nepotřebujete.",o:["TCP/80","TCP/143","UDP/53","TCP/443"],a:"TCP/143"}
+];
+
+let currentMode = 'practice';
+let currentIndex = 0;
+let testQuestions = [];
+let userAnswers = {}; // {qIndex: selectedOptionIndex}
+let timerInterval;
+
+function setMode(mode) {
+    currentMode = mode;
+    userAnswers = {};
+    document.getElementById('nav-grid').innerHTML = '';
+    document.getElementById('q-num').innerText = '';
+    document.getElementById('expl').style.display = 'none';
+    document.getElementById('results-card').style.display = 'none';
+    document.getElementById('quiz-card').style.display = 'block';
+    document.getElementById('test-bar').style.display = 'none';
+
+    if (mode === 'practice') {
+        testQuestions = database; // Všechny otázky
+        document.getElementById('mode-label').innerText = 'Režim: Procvičování';
+        renderNav();
+        loadQ(0);
+    } else {
+        // Náhodných 20
+        testQuestions = [...database].sort(() => 0.5 - Math.random()).slice(0, 20);
+        document.getElementById('mode-label').innerText = 'Režim: TEST';
+        document.getElementById('test-bar').style.display = 'flex';
+        renderNav();
+        loadQ(0);
+        startTimer();
+    }
+}
+
+function renderNav() {
+    const grid = document.getElementById('nav-grid');
+    testQuestions.forEach((_, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'nav-btn';
+        btn.innerText = i + 1;
+        btn.onclick = () => loadQ(i);
+        btn.id = 'nav-' + i;
+        grid.appendChild(btn);
+    });
+}
+
+function loadQ(index) {
+    currentIndex = index;
+    const q = testQuestions[index];
+    
+    document.getElementById('q-num').innerText = `Otázka ${index + 1} / ${testQuestions.length}`;
+    document.getElementById('q-text').innerText = q.q;
+    
+    // Navigace styl
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('nav-' + index).classList.add('active');
+
+    const optsDiv = document.getElementById('options');
+    optsDiv.innerHTML = '';
+
+    const explDiv = document.getElementById('expl');
+    explDiv.style.display = 'none';
+    explDiv.innerText = "Vysvětlení: " + q.a;
+
+    // Je již zodpovězeno?
+    const answered = userAnswers[index] !== undefined;
+
+    if (currentMode === 'practice' && answered) explDiv.style.display = 'block';
+
+    q.o.forEach((optText, i) => {
+        const div = document.createElement('div');
+        div.className = 'option';
+        div.innerText = optText;
+        
+        if (answered) {
+            div.classList.add('disabled');
+            if (currentMode === 'practice') {
+                if (isCorrect(q, optText)) div.classList.add('correct');
+                else if (i === userAnswers[index]) div.classList.add('wrong');
+            } else {
+                if (i === userAnswers[index]) div.style.background = '#e0f2fe';
+            }
+        }
+
+        div.onclick = () => selectAnswer(index, i, optText);
+        optsDiv.appendChild(div);
+    });
+}
+
+function isCorrect(q, selectedText) {
+    // Porovnani textu (odstraneni mezer a tecek na konci pro jistotu)
+    const normSel = selectedText.trim().replace(/\.$/, "");
+    const normAns = q.a.trim().replace(/\.$/, "");
+    // Zkontroluje jestli odpoved je v seznamu spravnych (pokud jich je vic oddelenych carkou) nebo presna shoda
+    return normAns === normSel || normAns.includes(normSel);
+}
+
+function selectAnswer(qIndex, optIndex, text) {
+    if (currentMode === 'practice' && userAnswers[qIndex] !== undefined) return;
+    
+    userAnswers[qIndex] = optIndex;
+    const q = testQuestions[qIndex];
+    const navBtn = document.getElementById('nav-' + qIndex);
+
+    if (currentMode === 'practice') {
+        const correct = isCorrect(q, text);
+        navBtn.classList.add(correct ? 'correct' : 'wrong');
+        loadQ(qIndex); // Refresh pro barvy
+    } else {
+        navBtn.style.background = '#bfdbfe'; // Oznaceno
+        navBtn.style.borderColor = '#2563eb';
+    }
+}
+
+function nextQ() {
+    if (currentIndex < testQuestions.length - 1) loadQ(currentIndex + 1);
+}
+
+function prevQ() {
+    if (currentIndex > 0) loadQ(currentIndex - 1);
+}
+
+function startTimer() {
+    let sec = 1200; // 20 min
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        sec--;
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        document.getElementById('timer').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+        if (sec <= 0) finishTest();
+    }, 1000);
+}
+
+function finishTest() {
+    clearInterval(timerInterval);
+    document.getElementById('quiz-card').style.display = 'none';
+    document.getElementById('test-bar').style.display = 'none';
+    document.getElementById('results-card').style.display = 'block';
+
+    let score = 0;
+    testQuestions.forEach((q, i) => {
+        const uIdx = userAnswers[i];
+        if (uIdx !== undefined && isCorrect(q, q.o[uIdx])) {
+            score++;
+        }
+    });
+
+    const perc = Math.round((score / 20) * 100);
+    document.getElementById('final-score').innerText = perc + "%";
+    document.getElementById('final-text').innerText = `Správně ${score} z 20`;
+}
+
+// Start
+setMode('practice');
+
+</script>
+</body>
+</html>
