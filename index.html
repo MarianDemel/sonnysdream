@@ -8,7 +8,7 @@
         body { font-family: sans-serif; background: #f4f4f9; margin: 0; display: flex; height: 100vh; color: #333; }
         
         /* Sidebar navigace */
-        .sidebar { width: 300px; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; }
+        .sidebar { width: 300px; background: #fff; border-right: 1px solid #ddd; display: flex; flex-direction: column; flex-shrink: 0; transition: all 0.3s; }
         .sidebar-header { padding: 20px; background: #2563eb; color: white; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 10px; }
         .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
@@ -20,6 +20,8 @@
         .nav-btn.active { border: 2px solid #2563eb; font-weight: bold; }
         .nav-btn.correct { background: #22c55e; color: white; border-color: #16a34a; }
         .nav-btn.wrong { background: #ef4444; color: white; border-color: #dc2626; }
+        /* Styl pro vyplněnou otázku v testu (jen v navigaci) */
+        .nav-btn.answered-test { background: #bfdbfe; border-color: #2563eb; color: #1e3a8a; }
         
         /* Hlavní obsah */
         .main { flex: 1; padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
@@ -33,10 +35,18 @@
             padding: 15px; border: 2px solid #e5e7eb; border-radius: 6px; cursor: pointer; transition: 0.2s; 
             display: flex; align-items: center;
         }
-        .option:hover { background: #f9fafb; border-color: #2563eb; }
+        
+        /* Hover efekt funguje vždy, pokud není disabled */
+        .option:not(.disabled):hover { background: #f9fafb; border-color: #2563eb; transform: translateX(5px); }
+        
+        /* Styly pro různé stavy */
         .option.correct { background: #dcfce7; border-color: #22c55e; color: #14532d; }
         .option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; }
-        .option.disabled { pointer-events: none; opacity: 0.8; }
+        
+        /* NOVÉ: Styl pro vybranou odpověď v testu (před vyhodnocením) */
+        .option.selected-test { background: #dbeafe; border-color: #2563eb; font-weight: bold; color: #1e40af; box-shadow: 0 0 0 1px #2563eb; }
+
+        .option.disabled { pointer-events: none; opacity: 0.9; }
         
         .explanation { 
             margin-top: 20px; padding: 15px; background: #eff6ff; border-left: 4px solid #2563eb; 
@@ -44,7 +54,8 @@
         }
 
         .controls { margin-top: 30px; display: flex; justify-content: space-between; }
-        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: #e5e7eb; color: #333; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; background: #e5e7eb; color: #333; transition: 0.2s; }
+        .btn:hover { background: #d1d5db; }
         .btn-primary { background: #2563eb; color: white; }
         .btn-primary:hover { background: #1d4ed8; }
 
@@ -56,16 +67,38 @@
         .results { display: none; text-align: center; }
         .score-big { font-size: 4em; font-weight: bold; color: #2563eb; margin: 20px 0; }
 
+        /* --- RESPONZIVITA (MOBIL) --- */
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; max-height: 250px; border-right: none; border-bottom: 1px solid #ddd; }
+            .sidebar-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+            .sidebar-header h2 { font-size: 1.2em; }
+            .nav-grid { grid-template-columns: repeat(10, 1fr); }
+            
+            .main { padding: 15px; }
+            .card { padding: 20px; }
+            .question-text { font-size: 1.1em; }
+            .option { padding: 12px; font-size: 0.95em; }
+            .score-big { font-size: 3em; }
+            
+            /* Tlačítka na mobilu */
+            .controls { gap: 10px; }
+            .btn { flex: 1; font-size: 14px; padding: 12px 10px; }
+        }
+
     </style>
 </head>
 <body>
 
 <div class="sidebar">
     <div class="sidebar-header">
-        <h2 style="margin:0">Maturita IT</h2>
-        <div style="margin-top:10px; display:flex; gap:5px;">
-            <button class="btn" style="flex:1; font-size:12px;" onclick="setMode('practice')">Procvičování</button>
-            <button class="btn btn-primary" style="flex:1; font-size:12px;" onclick="setMode('test')">Spustit TEST</button>
+        <div>
+            <h2 style="margin:0">Maturita IT</h2>
+            <div style="font-size:0.8em; opacity:0.8">Kompletní databáze</div>
+        </div>
+        <div style="margin-top:10px; display:flex; gap:5px; flex-wrap: wrap;">
+            <button class="btn" style="flex:1; font-size:12px; min-width: 80px;" onclick="setMode('practice')">Procvičování</button>
+            <button class="btn btn-primary" style="flex:1; font-size:12px; min-width: 80px;" onclick="setMode('test')">Spustit TEST</button>
         </div>
     </div>
     <div class="sidebar-content">
@@ -75,9 +108,9 @@
 
 <div class="main">
     <div class="top-bar" id="test-bar">
-        <div><strong>Ostrý test</strong> (20 náhodných otázek)</div>
+        <div><strong>Ostrý test</strong> (20 náhodných)</div>
         <div class="timer" id="timer">20:00</div>
-        <button class="btn" style="background:#fee2e2; color:#dc2626" onclick="finishTest()">Ukončit</button>
+        <button class="btn" style="background:#fee2e2; color:#dc2626; padding: 5px 10px; font-size: 12px;" onclick="finishTest()">Ukončit</button>
     </div>
 
     <div class="card" id="quiz-card">
@@ -99,12 +132,14 @@
         <h2>Test dokončen!</h2>
         <div class="score-big" id="final-score">0%</div>
         <p id="final-text"></p>
-        <button class="btn btn-primary" onclick="location.reload()">Začít znovu</button>
+        <div style="margin-top:20px;">
+            <button class="btn btn-primary" onclick="location.reload()">Začít znovu</button>
+        </div>
     </div>
 </div>
 
 <script>
-// ZDE JSOU TVOJE DATA Z WORDU - NAPAŘSOVANÁ
+// ZDE JSOU TVOJE DATA Z WORDU - NAPAŘSOVANÁ (BEZ ZMĚN)
 const database = [
 {q:"Označte chybný výrok o operačním systému Windows.",o:["Ve Windows 10 je účet Administrator ve výchozím nastavení zakázaný.","Pro automatické zálohování uživatelských složek knihoven v prostředí OS Windows 10 je určen modul Historie souborů.","Pokud vytvoříme uživatelský účet v prostředí Windows 10, stává se ve výchozím nastavení členem skupiny Users.","Členem domény Windows může být počítač s OS Windows 10 Home, Professional, Education."],a:"Členem domény Windows může být počítač s OS Windows 10 Home, Professional, Education."},
 {q:"Na souborovém serveru s OS Windows 2019 s úplným doménovým názvem  db.fast.com  byla nastavena sdílená složka  \\\\db\\store .\nToto sdílení reprezentuje složku  G:\\data . Přístup ke sdílené složce  \\\\db\\store  je pro členy skupiny  Everyone  nastaven na  Úplné řízení .\nPřístupová oprávnění NTFS pro  G:\\data  umožňují  Číst, Zapisovat, Zobrazovat obsah složky ,  Číst a spouštět, Měnit  skupině  Authenticated Users .\nSkupina  Sales  má nastaveno pro tuto složku oprávnění  Číst .\nNikol  je členkou skupiny  Sales  a členem skupiny  Domain   Users .\nJaká budou oprávnění, pokud se pokusí  Nikol  o síťový přístup ke složce  \\\\db\\store ?",o:["Úplné řízení","Žádná","Číst","Změnit"],a:"Změnit"},
@@ -372,13 +407,17 @@ function loadQ(index) {
         div.className = 'option';
         div.innerText = optText;
         
-        if (answered) {
-            div.classList.add('disabled');
-            if (currentMode === 'practice') {
+        // Logika pro zobrazení
+        if (currentMode === 'practice') {
+            if (answered) {
+                div.classList.add('disabled');
                 if (isCorrect(q, optText)) div.classList.add('correct');
                 else if (i === userAnswers[index]) div.classList.add('wrong');
-            } else {
-                if (i === userAnswers[index]) div.style.background = '#e0f2fe';
+            }
+        } else {
+            // Test mode - zobrazení vybrané odpovědi
+            if (i === userAnswers[index]) {
+                div.classList.add('selected-test');
             }
         }
 
@@ -396,6 +435,7 @@ function isCorrect(q, selectedText) {
 }
 
 function selectAnswer(qIndex, optIndex, text) {
+    // V procvičování nelze měnit odpověď
     if (currentMode === 'practice' && userAnswers[qIndex] !== undefined) return;
     
     userAnswers[qIndex] = optIndex;
@@ -407,8 +447,9 @@ function selectAnswer(qIndex, optIndex, text) {
         navBtn.classList.add(correct ? 'correct' : 'wrong');
         loadQ(qIndex); // Refresh pro barvy
     } else {
-        navBtn.style.background = '#bfdbfe'; // Oznaceno
-        navBtn.style.borderColor = '#2563eb';
+        // V testu jen označíme, že je zodpovězeno
+        navBtn.classList.add('answered-test');
+        loadQ(qIndex); // Refresh pro zobrazení výběru (modré podbarvení)
     }
 }
 
