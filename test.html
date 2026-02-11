@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cisco ACL Test - Příprava</title>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+            --correct-color: #28a745;
+            --explanation-bg: #e8f5e9;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .controls {
+            text-align: center;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+
+        button.main-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.3s;
+        }
+
+        button.main-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--primary-color);
+            transition: transform 0.2s;
+        }
+
+        .question-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.15em;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .options li {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .options li:last-child {
+            border-bottom: none;
+        }
+
+        .reveal-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .reveal-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .answer-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--explanation-bg);
+            border-radius: 5px;
+            border: 1px solid #c3e6cb;
+            display: none; /* Skryto ve výchozím stavu */
+            animation: fadeIn 0.5s;
+        }
+
+        .answer-box strong {
+            color: var(--correct-color);
+            font-size: 1.1em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .explanation {
+            font-size: 0.95em;
+            color: #555;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Pro tisk */
+        @media print {
+            body { background-color: white; }
+            .question-card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+            .reveal-btn { display: none; }
+            .answer-box { display: block !important; border: none; padding: 0; margin-top: 5px; }
+            .controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Velký test: ACL (Access Control Lists)</h1>
+        <p class="subtitle">20 otázek z teorie, syntaxe a pravidel (Cisco)</p>
+    </header>
+
+    <div class="controls">
+        <button class="main-btn" onclick="toggleAll()">Ukázat / Skrýt všechny odpovědi</button>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">1. Jakým způsobem router prochází pravidla v ACL (tzv. ACE)?</div>
+        <ul class="options">
+            <li>a) Náhodně, dokud nenajde shodu.</li>
+            <li>b) Odspodu nahoru (od posledního přidaného).</li>
+            <li>c) Sekvenčně od začátku do konce (shora dolů) a použije pravidlo "first-fit".</li>
+            <li>d) Najde nejpřesnější shodu bez ohledu na pořadí.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a1')">Odpověď</button>
+        <div id="a1" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">ACL je sekvenční seznam, používá pravidlo first-fit (první shoda). Jakmile dojde ke shodě, dále se neprochází.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">2. Co se stane, pokud paket neodpovídá žádnému pravidlu v seznamu ACL?</div>
+        <ul class="options">
+            <li>a) Paket je povolen (implicit permit).</li>
+            <li>b) Router se zeptá odesílatele, co má dělat.</li>
+            <li>c) Paket je zahozen, protože na konci je automatické pravidlo deny any.</li>
+            <li>d) Paket je odeslán na default gateway.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a2')">Odpověď</button>
+        <div id="a2" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">Každý seznam má na konci defaultní (neviditelné) pravidlo deny any, které vše ostatní zahodí.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">3. Kde by měla být umístěna specifická pravidla (např. pro hostitele) oproti obecným pravidlům?</div>
+        <ul class="options">
+            <li>a) Na konec seznamu.</li>
+            <li>b) Na začátek seznamu.</li>
+            <li>c) Na pořadí nezáleží.</li>
+            <li>d) Uprostřed seznamu.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a3')">Odpověď</button>
+        <div id="a3" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Je nutné umísťovat více specifická pravidla na začátek a obecná (subnety) na konec, jinak by obecné pravidlo "přebilo" to specifické.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">4. Jaký rozsah čísel používají Standardní ACL?</div>
+        <ul class="options">
+            <li>a) 1–99 a 1300–1999</li>
+            <li>b) 100–199 a 2000–2699</li>
+            <li>c) 1–100</li>
+            <li>d) 1000–2000</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a4')">Odpověď</button>
+        <div id="a4" class="answer-box">
+            <strong>Správně: A</strong>
+            <div class="explanation">Standard ACL používá čísla 1–99 a rozšířený rozsah 1300–1999.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">5. Podle čeho filtruje Standardní ACL?</div>
+        <ul class="options">
+            <li>a) Podle zdrojové i cílové IP adresy.</li>
+            <li>b) Pouze podle cílové IP adresy.</li>
+            <li>c) Podle protokolu a portu.</li>
+            <li>d) Pouze podle zdrojové IP adresy.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a5')">Odpověď</button>
+        <div id="a5" class="answer-box">
+            <strong>Správně: D</strong>
+            <div class="explanation">Standard ACL je jednoduché a dívá se pouze na to, ODKUD paket přichází (zdrojová IP).</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">6. Jaké je doporučené umístění pro Standardní ACL?</div>
+        <ul class="options">
+            <li>a) Co nejblíže ke zdroji.</li>
+            <li>b) Co nejblíže k cíli.</li>
+            <li>c) Na rozhraní směrem k internetu.</li>
+            <li>d) Na VTY linkách.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a6')">Odpověď</button>
+        <div id="a6" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Protože Standardní ACL neumí rozlišit cíl, musíme ho umístit až co nejblíže k cíli, abychom neblokovali provoz do jiných částí sítě.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">7. Jaký rozsah čísel používají Extended (Rozšířené) ACL?</div>
+        <ul class="options">
+            <li>a) 1–99</li>
+            <li>b) 100–199 a 2000–2699</li>
+            <li>c) 1000–1999</li>
+            <li>d) 500–599</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a7')">Odpověď</button>
+        <div id="a7" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Extended ACL používá čísla 100–199 a rozšířený rozsah 2000–2699.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">8. Co z následujícího nemůže kontrolovat Extended ACL?</div>
+        <ul class="options">
+            <li>a) IP adresy zdroje a cíle.</li>
+            <li>b) Protokoly (TCP, UDP, ICMP).</li>
+            <li>c) MAC adresu odesílatele.</li>
+            <li>d) Porty v TCP/UDP hlavičce.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a8')">Odpověď</button>
+        <div id="a8" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">Extended ACL pracuje na 3. a 4. vrstvě (IP, TCP/UDP). MAC adresa je 2. vrstva, tu ACL na routeru běžně neřeší.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">9. Jaké je doporučené umístění pro Extended ACL?</div>
+        <ul class="options">
+            <li>a) Co nejblíže ke zdroji.</li>
+            <li>b) Co nejblíže k cíli.</li>
+            <li>c) Uprostřed sítě.</li>
+            <li>d) Pouze na odchozím rozhraní.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a9')">Odpověď</button>
+        <div id="a9" class="answer-box">
+            <strong>Správně: A</strong>
+            <div class="explanation">Extended ACL je velmi přesné, proto ho dáváme hned ke zdroji, abychom zbytečný provoz zablokovali co nejdříve a nezatěžovali síť.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">10. Jak se vypočítá wildcard (inverzní) maska?</div>
+        <ul class="options">
+            <li>a) Sečtením oktetů masky s 255.</li>
+            <li>b) 255 mínus příslušný oktet masky podsítě.</li>
+            <li>c) Je to stejné jako maska podsítě, jen zapsané hexadecimálně.</li>
+            <li>d) Použitím binárního součinu.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a10')">Odpověď</button>
+        <div id="a10" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Výpočet wildcard: 255 – příslušný oktet masky podsítě (např. 255 - 255 = 0).</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">11. Které klíčové slovo v ACL nahrazuje masku 0.0.0.0 (shoda všech bitů)?</div>
+        <ul class="options">
+            <li>a) any</li>
+            <li>b) all</li>
+            <li>c) host</li>
+            <li>d) match</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a11')">Odpověď</button>
+        <div id="a11" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">Klíčové slovo 'host' se používá pro konkrétní jednu IP adresu (nahrazuje masku 0.0.0.0).</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">12. Které klíčové slovo v ACL nahrazuje masku 255.255.255.255 (ignorování celé adresy)?</div>
+        <ul class="options">
+            <li>a) any</li>
+            <li>b) host</li>
+            <li>c) full</li>
+            <li>d) none</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a12')">Odpověď</button>
+        <div id="a12" class="answer-box">
+            <strong>Správně: A</strong>
+            <div class="explanation">Klíčové slovo 'any' znamená "cokoliv" a nahrazuje wildcard masku 255.255.255.255.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">13. Jaká je hlavní výhoda "Named ACL" (pojmenovaných seznamů)?</div>
+        <ul class="options">
+            <li>a) Fungují rychleji než číslované.</li>
+            <li>b) Umožňují mazat nebo vkládat jednotlivá pravidla (řádky) bez nutnosti smazat celý seznam.</li>
+            <li>c) Nepotřebují wildcard masky.</li>
+            <li>d) Lze je aplikovat na více rozhraní najednou.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a13')">Odpověď</button>
+        <div id="a13" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Named ACL mají číslované řádky, což umožňuje editaci (mazání/vkládání) konkrétních pravidel, aniž byste museli přepsat celý seznam.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">14. Jakým příkazem se aplikuje ACL na fyzické rozhraní (interface)?</div>
+        <ul class="options">
+            <li>a) ip access-list</li>
+            <li>b) access-class</li>
+            <li>c) ip access-group</li>
+            <li>d) apply access-list</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a14')">Odpověď</button>
+        <div id="a14" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">Na rozhraní (např. G0/0) se používá příkaz 'ip access-group [číslo/jméno] [in/out]'.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">15. Jakým příkazem se aplikuje ACL na linky pro vzdálenou správu (VTY/Telnet)?</div>
+        <ul class="options">
+            <li>a) ip access-group</li>
+            <li>b) access-class</li>
+            <li>c) line access</li>
+            <li>d) vty filter</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a15')">Odpověď</button>
+        <div id="a15" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Pro zabezpečení VTY linek (SSH/Telnet) se používá příkaz 'access-class'.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">16. Který operátor v Extended ACL znamená "nerovná se"?</div>
+        <ul class="options">
+            <li>a) eq</li>
+            <li>b) gt</li>
+            <li>c) lt</li>
+            <li>d) neq</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a16')">Odpověď</button>
+        <div id="a16" class="answer-box">
+            <strong>Správně: D</strong>
+            <div class="explanation">'neq' znamená Not Equal (nerovná se). 'eq' je Equal (rovná se), 'gt' Greater Than (větší než), 'lt' Less Than (menší než).</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">17. Který protokol a port odpovídá službě DNS?</div>
+        <ul class="options">
+            <li>a) TCP/23</li>
+            <li>b) TCP/80</li>
+            <li>c) UDP/53 (i TCP/53)</li>
+            <li>d) TCP/443</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a17')">Odpověď</button>
+        <div id="a17" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">DNS primárně využívá port 53 (UDP pro dotazy, TCP pro přenosy zón).</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">18. Co dělá klíčové slovo 'remark' v konfiguraci ACL?</div>
+        <ul class="options">
+            <li>a) Aktivuje logování paketu.</li>
+            <li>b) Umožňuje vložit textový popis (komentář) k pravidlu.</li>
+            <li>c) Restartuje počítadlo shod.</li>
+            <li>d) Označuje důležité pravidlo.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a18')">Odpověď</button>
+        <div id="a18" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Remark slouží čistě pro dokumentaci a přehlednost (komentáře), nemá vliv na funkčnost filtru.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">19. Pokud je ACL aplikováno jako "Outbound" (odchozí), které pakety neovlivňuje?</div>
+        <ul class="options">
+            <li>a) Pakety procházející routerem z LAN do WAN.</li>
+            <li>b) Provoz, který vzniká (pochází) lokálně přímo na routeru.</li>
+            <li>c) Odpovědi na ping z internetu.</li>
+            <li>d) Pakety směrované do jiné VLAN.</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a19')">Odpověď</button>
+        <div id="a19" class="answer-box">
+            <strong>Správně: B</strong>
+            <div class="explanation">Odchozí ACL filtrují pouze procházející provoz. Provoz generovaný samotným routerem (např. když router sám někam ginguje) tímto filtrem neprochází.</div>
+        </div>
+    </div>
+
+    <div class="question-card">
+        <div class="question-text">20. Jakým příkazem globálně odstraníte celé číslované ACL?</div>
+        <ul class="options">
+            <li>a) delete access-list [číslo]</li>
+            <li>b) clear access-list [číslo]</li>
+            <li>c) no access-list [číslo]</li>
+            <li>d) remove access-list [číslo]</li>
+        </ul>
+        <button class="reveal-btn" onclick="toggleAnswer('a20')">Odpověď</button>
+        <div id="a20" class="answer-box">
+            <strong>Správně: C</strong>
+            <div class="explanation">Pro smazání se v Cisco IOS používá předpona 'no'. Tedy 'no access-list 10'.</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function toggleAnswer(id) {
+        var x = document.getElementById(id);
+        if (x.style.display === "block") {
+            x.style.display = "none";
+        } else {
+            x.style.display = "block";
+        }
+    }
+
+    function toggleAll() {
+        var answers = document.getElementsByClassName("answer-box");
+        var allHidden = true;
+
+        // Check state
+        for (var i = 0; i < answers.length; i++) {
+            if (answers[i].style.display === "block") {
+                allHidden = false;
+                break;
+            }
+        }
+
+        // Toggle
+        for (var i = 0; i < answers.length; i++) {
+            answers[i].style.display = allHidden ? "block" : "none";
+        }
+    }
+</script>
+
+</body>
+</html>
