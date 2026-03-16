@@ -5,92 +5,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maturitní Testy IT – OPS</title>
     <style>
-        :root { --primary: #2563eb; --primary-hover: #1d4ed8; --bg: #f8fafc; --text: #0f172a; --card: #ffffff; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; color: var(--text); }
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --sidebar-bg: #ffffff;
+            --option-bg: #ffffff;
+            --option-text: #334155;
+            --option-hover-bg: #f8fafc;
+            --nav-bg: #f1f5f9;
+            --nav-text: #64748b;
+            --nav-border: #cbd5e1;
+            --meta-text: #64748b;
+            --q-text: #1e293b;
+            --expl-bg: #eff6ff;
+            --expl-border: #2563eb;
+            --expl-text: #1e3a8a;
+            --testbar-bg: #ffffff;
+            --context-bg: #fff7ed;
+            --context-text: #9a3412;
+            --disk-name-bg: #f8fafc;
+            --disk-name-text: #334155;
+            --disk-part-bg: #e0f2fe;
+            --disk-part-text: #0369a1;
+            --disk-part-border: #0ea5e9;
+            --disk-free-bg: #f1f5f9;
+            --disk-free-text: #64748b;
+            --table-header-bg: #f1f5f9;
+            --score-shadow: rgba(37,99,235,0.3);
+            --btn-prev-bg: #e2e8f0;
+            --btn-prev-text: #475569;
+            --btn-prev-hover: #cbd5e1;
+            --results-text: #475569;
+            --sidebar-header-bg: var(--primary);
+        }
+
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --bg: #0f172a;
+            --text: #e2e8f0;
+            --card: #1e293b;
+            --border: #334155;
+            --sidebar-bg: #1e293b;
+            --option-bg: #1e293b;
+            --option-text: #cbd5e1;
+            --option-hover-bg: #263347;
+            --nav-bg: #0f172a;
+            --nav-text: #94a3b8;
+            --nav-border: #334155;
+            --meta-text: #94a3b8;
+            --q-text: #e2e8f0;
+            --expl-bg: #172040;
+            --expl-border: #3b82f6;
+            --expl-text: #bfdbfe;
+            --testbar-bg: #1e293b;
+            --context-bg: #1c1208;
+            --context-text: #fdba74;
+            --disk-name-bg: #0f172a;
+            --disk-name-text: #94a3b8;
+            --disk-part-bg: #0c2a3a;
+            --disk-part-text: #38bdf8;
+            --disk-part-border: #0284c7;
+            --disk-free-bg: #1e293b;
+            --disk-free-text: #64748b;
+            --table-header-bg: #0f172a;
+            --score-shadow: rgba(59,130,246,0.4);
+            --btn-prev-bg: #1e293b;
+            --btn-prev-text: #94a3b8;
+            --btn-prev-hover: #334155;
+            --results-text: #94a3b8;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); margin: 0; display: flex; height: 100vh; color: var(--text); transition: background 0.2s, color 0.2s; }
         
         /* Sidebar */
-        .sidebar { width: 340px; background: var(--card); border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; }
-        .sidebar-header { padding: 20px; background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .sidebar { width: 340px; background: var(--sidebar-bg); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; z-index: 10; transition: background 0.2s, border-color 0.2s; }
+        .sidebar-header { padding: 20px; background: var(--primary); color: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background 0.2s; }
         .sidebar-content { flex: 1; overflow-y: auto; padding: 12px; scrollbar-width: thin; }
         
         /* Navigace */
         .nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
         .nav-btn { 
             aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
-            border: 1px solid #cbd5e1; background: #f1f5f9; cursor: pointer; font-size: 11px; border-radius: 6px; font-weight: 600; color: #64748b; transition: all 0.15s;
+            border: 1px solid var(--nav-border); background: var(--nav-bg); cursor: pointer; font-size: 11px; border-radius: 6px; font-weight: 600; color: var(--nav-text); transition: all 0.15s;
         }
         .nav-btn:hover { background: #e0f2fe; color: var(--primary); border-color: var(--primary); transform: scale(1.1); }
+        [data-theme="dark"] .nav-btn:hover { background: #172a45; }
         .nav-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 0 10px rgba(37, 99, 235, 0.4); }
         
         /* Barvy pro vyhodnocení */
         .nav-btn.correct { background: #22c55e; color: white; border-color: #16a34a; }
         .nav-btn.wrong { background: #ef4444; color: white; border-color: #dc2626; }
         .nav-btn.answered-test { background: #bfdbfe; color: #1e40af; border-color: #3b82f6; }
+        [data-theme="dark"] .nav-btn.answered-test { background: #1e3a5c; color: #93c5fd; border-color: #3b82f6; }
 
         /* Hlavní okno */
         .main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; position: relative; }
         .container { max-width: 900px; width: 100%; margin-bottom: 50px; }
         
-        .card { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+        .card { background: var(--card); padding: 40px; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid var(--border); transition: background 0.2s, border-color 0.2s; }
+        [data-theme="dark"] .card { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); }
         
-        .question-meta { display: flex; justify-content: space-between; margin-bottom: 25px; color: #64748b; font-size: 0.9em; font-weight: 500; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; }
-        .question-text { font-size: 1.15em; font-weight: 600; margin-bottom: 30px; line-height: 1.6; color: #1e293b; }
+        .question-meta { display: flex; justify-content: space-between; margin-bottom: 25px; color: var(--meta-text); font-size: 0.9em; font-weight: 500; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+        .question-text { font-size: 1.15em; font-weight: 600; margin-bottom: 30px; line-height: 1.6; color: var(--q-text); }
         
         /* --- STYLY PRO DISKOVÉ TABULKY --- */
-        .disk-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px 0; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; font-size: 0.9em; }
-        .disk-table td { border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; padding: 12px; vertical-align: top; }
+        .disk-table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 20px 0; border: 1px solid var(--nav-border); border-radius: 8px; overflow: hidden; font-size: 0.9em; }
+        .disk-table td { border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); padding: 12px; vertical-align: top; }
         .disk-table tr:last-child td { border-bottom: none; }
         .disk-table td:last-child { border-right: none; }
-        .disk-name { background-color: #f8fafc; font-weight: 700; width: 25%; color: #334155; }
-        .disk-part { background-color: #e0f2fe; color: #0369a1; border-left: 4px solid #0ea5e9; font-weight: 500; }
-        .disk-free { background-color: #f1f5f9; color: #64748b; font-style: italic; border-left: 4px dashed #cbd5e1; }
+        .disk-name { background-color: var(--disk-name-bg); font-weight: 700; width: 25%; color: var(--disk-name-text); }
+        .disk-part { background-color: var(--disk-part-bg); color: var(--disk-part-text); border-left: 4px solid var(--disk-part-border) !important; font-weight: 500; }
+        .disk-free { background-color: var(--disk-free-bg); color: var(--disk-free-text); font-style: italic; border-left: 4px dashed var(--nav-border) !important; }
 
         /* Běžná tabulka */
-        .q-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9em; border: 1px solid #cbd5e1; }
-        .q-table th { background: #f1f5f9; padding: 10px; text-align: left; border: 1px solid #cbd5e1; }
-        .q-table td { padding: 8px; border: 1px solid #cbd5e1; }
+        .q-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9em; border: 1px solid var(--nav-border); }
+        .q-table th { background: var(--table-header-bg); padding: 10px; text-align: left; border: 1px solid var(--nav-border); color: var(--q-text); }
+        .q-table td { padding: 8px; border: 1px solid var(--nav-border); color: var(--option-text); }
 
         /* Kontext */
-        .context-box { background: #fff7ed; border-left: 4px solid #f97316; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-style: italic; color: #9a3412; font-size: 0.95em; }
+        .context-box { background: var(--context-bg); border-left: 4px solid #f97316; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-style: italic; color: var(--context-text); font-size: 0.95em; }
 
         /* Odpovědi */
         .options { display: flex; flex-direction: column; gap: 12px; }
         .option { 
-            padding: 18px 20px; border: 2px solid #e2e8f0; border-radius: 10px; cursor: pointer; transition: all 0.2s; 
-            display: flex; align-items: center; font-size: 1em; background: white; color: #334155;
+            padding: 18px 20px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; 
+            display: flex; align-items: center; font-size: 1em; background: var(--option-bg); color: var(--option-text);
         }
-        .option:not(.disabled):hover { border-color: #94a3b8; background: #f8fafc; transform: translateX(5px); }
+        .option:not(.disabled):hover { border-color: #94a3b8; background: var(--option-hover-bg); transform: translateX(5px); }
         
         .option.selected-test { background: #eff6ff; border-color: var(--primary); color: var(--primary); font-weight: 600; box-shadow: 0 0 0 1px var(--primary); }
+        [data-theme="dark"] .option.selected-test { background: #172040; color: #93c5fd; }
         .option.correct { background: #dcfce7; border-color: #22c55e; color: #14532d; font-weight: 600; }
+        [data-theme="dark"] .option.correct { background: #0f2d1a; color: #86efac; border-color: #22c55e; }
         .option.wrong { background: #fee2e2; border-color: #ef4444; color: #991b1b; opacity: 0.8; }
+        [data-theme="dark"] .option.wrong { background: #2d0f0f; color: #fca5a5; border-color: #ef4444; }
         .option.disabled { pointer-events: none; }
 
-        .explanation { margin-top: 30px; padding: 20px; background: #eff6ff; border-radius: 8px; border-left: 5px solid var(--primary); color: #1e3a8a; display: none; line-height: 1.6; }
+        .explanation { margin-top: 30px; padding: 20px; background: var(--expl-bg); border-radius: 8px; border-left: 5px solid var(--expl-border); color: var(--expl-text); display: none; line-height: 1.6; transition: background 0.2s; }
 
         .controls { margin-top: 40px; display: flex; justify-content: space-between; gap: 20px; }
         .btn { padding: 12px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; }
-        .btn-prev { background: #e2e8f0; color: #475569; }
-        .btn-prev:hover { background: #cbd5e1; }
+        .btn-prev { background: var(--btn-prev-bg); color: var(--btn-prev-text); }
+        .btn-prev:hover { background: var(--btn-prev-hover); }
         .btn-next { background: var(--primary); color: white; box-shadow: 0 4px 6px -2px rgba(37, 99, 235, 0.3); }
         .btn-next:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
-        .test-bar { background: white; padding: 15px 25px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .test-bar { background: var(--testbar-bg); padding: 15px 25px; border-radius: 12px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); transition: background 0.2s; }
         .timer { font-family: monospace; font-size: 1.5em; font-weight: 700; color: #dc2626; background: #fef2f2; padding: 5px 15px; border-radius: 6px; }
+        [data-theme="dark"] .timer { background: #2d0f0f; color: #f87171; }
 
         .results { text-align: center; display: none; }
-        .score-circle { width: 150px; height: 150px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 3em; font-weight: 800; margin: 20px auto; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3); }
+        .score-circle { width: 150px; height: 150px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 3em; font-weight: 800; margin: 20px auto; box-shadow: 0 10px 20px var(--score-shadow); }
+
+        /* Tlačítko tmavého módu */
+        .theme-btn {
+            margin-top: 10px; width: 100%; padding: 7px; font-size: 12px;
+            background: rgba(255,255,255,0.15); color: white;
+            border: 1px solid rgba(255,255,255,0.3); border-radius: 6px;
+            cursor: pointer; font-weight: 600; transition: background 0.2s;
+        }
+        .theme-btn:hover { background: rgba(255,255,255,0.25); }
 
         @media (max-width: 900px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid #e2e8f0; }
+            .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid var(--border); }
             .nav-grid { grid-template-columns: repeat(10, 1fr); padding: 5px; }
             .main { padding: 15px; }
             .card { padding: 20px; }
             .question-text { font-size: 1.1em; }
             .disk-table { font-size: 0.8em; }
-            .disk-table td { display: block; width: 100%; border-right: none; border-bottom: 1px solid #eee; }
-            .disk-name { width: 100%; background: #eee; }
+            .disk-table td { display: block; width: 100%; border-right: none; border-bottom: 1px solid var(--border); }
+            .disk-name { width: 100%; }
         }
     </style>
 </head>
@@ -104,6 +196,7 @@
             <button class="btn" style="flex:1; padding:8px; font-size:13px; background:rgba(255,255,255,0.2); color:white; border:1px solid rgba(255,255,255,0.4);" onclick="setMode('practice')">Procvičovat</button>
             <button class="btn" style="flex:1; padding:8px; font-size:13px; background:white; color:var(--primary);" onclick="setMode('test')">Ostrý TEST</button>
         </div>
+        <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()">🌙 Tmavý mód</button>
     </div>
     <div class="sidebar-content">
         <div class="nav-grid" id="nav-grid"></div>
@@ -114,8 +207,8 @@
     <div class="container">
         <div class="test-bar" id="test-bar" style="display:none;">
             <div>
-                <strong style="display:block; color:#0f172a; font-size:1.1em;">Ostrý test</strong>
-                <span style="font-size:0.9em; color:#64748b;">20 náhodných otázek</span>
+                <strong style="display:block; color:var(--q-text); font-size:1.1em;">Ostrý test</strong>
+                <span style="font-size:0.9em; color:var(--meta-text);">20 náhodných otázek</span>
             </div>
             <div class="timer" id="timer">20:00</div>
             <button class="btn" style="background:#fee2e2; color:#b91c1c; padding:8px 15px;" onclick="finishTest()">Ukončit test</button>
@@ -140,9 +233,9 @@
         </div>
 
         <div class="card results" id="results-card">
-            <h2 style="color:#0f172a; margin-bottom:10px;">Test dokončen!</h2>
+            <h2 style="color:var(--q-text); margin-bottom:10px;">Test dokončen!</h2>
             <div class="score-circle" id="final-score">0%</div>
-            <p id="final-text" style="font-size:1.2em; color:#475569; margin-bottom:30px;"></p>
+            <p id="final-text" style="font-size:1.2em; color:var(--results-text); margin-bottom:30px;"></p>
             
             <div style="display:flex; gap:10px; justify-content:center;">
                 <button class="btn" style="background:#e0f2fe; color:#0284c7; font-size:1.1em; padding: 15px 30px;" onclick="reviewTest()">Prohlédnout chyby</button>
@@ -160,7 +253,7 @@ const database = [
 {q:"Které prohlášení o funkcích brány firewall v systému Windows Server 2019 je přesné?",o:["Automaticky blokuje veškerý datový provoz.","Nepodporuje příchozí pravidla.","Obsahuje předkonfigurovanou šablonu zabezpečení.","Integruje se výhradně s externími řešeními VPN."],c:[2],a:"Obsahuje předkonfigurovanou šablonu zabezpečení."},
 {q:"Potřebuji zobrazit statistické informace a provozu svého počítače s operačním systémem Windows – otevřené porty, navázaná spojení, počty odeslaných paketů.",o:["route","ipconfig /all","netstat","localhost"],c:[2],a:"netstat"},
 {q:"Jaký typ zálohy v prostředí OS Windows 2019 server je podporován kromě normální (úplné) zálohy?",o:["kopie","rozdílová","přírůstková","denní"],c:[2],a:"přírůstková"},
-{q:"Pracuji na pracovní stanici označení WS04, která je součástí domény Windows.<br>Síť využívá výchozí bránu, která je instalována na serveru označeném RO25 se statickou IP adresou 192.168.25.1.<br>Pokud zadám příkaz ping 192.168.25.1 je spojení vyhodnoceno jako funkční. Pokud zadám název serveru RO25 nemám žádnou odezvu.<br>Co je příčinou tohoto stavu?",o:["Na serveru RO25 je upraveno nastavení firewallu – konkrétně chování protokolu ICMP. Z důvodu vyšší bezpečnosti jsou „skryty“ názvy počítačů.","Příčina je v tom, že pracovní stanice WS04, nemá z neznámého důvodu v doméně účet.<br>(Mohl být neúmyslně vymazán na řadiči domény). Proto pracovní stanice nemůže plně využívat síťových služeb.","V síti nefunguje služba DNS.","V síti nefunguje korektně služba DHCP. Došlo k přidělení názvu, ale není přidělena IP adresa."],c:[2],a:"V síti nefunguje služba DNS."},
+{q:"Pracuji na pracovní stanici označení WS04, která je součástí domény Windows.<br>Síť využívá výchozí bránu, která je instalována na serveru označeném RO25 se statickou IP adresou 192.168.25.1.<br>Pokud zadám příkaz ping 192.168.25.1 je spojení vyhodnoceno jako funkční. Pokud zadám název serveru RO25 nemám žádnou odezvu.<br>Co je příčinou tohoto stavu?",o:["Na serveru RO25 je upraveno nastavení firewallu – konkrétně chování protokolu ICMP. Z důvodu vyšší bezpečnosti jsou „skryty\" názvy počítačů.","Příčina je v tom, že pracovní stanice WS04, nemá z neznámého důvodu v doméně účet.<br>(Mohl být neúmyslně vymazán na řadiči domény). Proto pracovní stanice nemůže plně využívat síťových služeb.","V síti nefunguje služba DNS.","V síti nefunguje korektně služba DHCP. Došlo k přidělení názvu, ale není přidělena IP adresa."],c:[2],a:"V síti nefunguje služba DNS."},
 {q:"Co bude první krok klienta DNS, aby provedl překlad názvu počítače na IP adresu?",o:["Klient DNS začne provádět všesměrové vysílání s využitím protokolu UDP, aby vyhledal DNS server.","Klient provede dotaz na nastavený alternativní DNS server.","Klient provede dotaz na primární DNS server.","Klient zkontroluje svou místní mezipaměť DNS resolveru."],c:[3],a:"Klient zkontroluje svou místní mezipaměť DNS resolveru."},
 {q:"Která z následujících možností zvyšuje zabezpečení operačního systému Windows 10/11 tím, že detekuje neoprávněné změny v systému a brání jim?",o:["GAC (Guest Account Control)","MMC (Microsoft Management Console)","AAC (Administrative Account Control)","UAC (User Account Control)"],c:[3],a:"UAC (User Account Control)"},
 {q:"Sdílíte složku v počítači se systémem Windows 10 s jiným uživatelem v rámci pracovní skupiny.<br>Jak můžete upravit konfiguraci počítače druhého uživatele pro usnadnění přístupu ke sdílené složce?",o:["Vytvořte oprávnění NTFS.","Vytvořte účinná oprávnění.","Namapujte sdílenou složku.","Vytvořte doménu."],c:[2],a:"Namapujte sdílenou složku."},
@@ -270,7 +363,7 @@ const database = [
 {q:"Pokud ukazuje čítač % času disku vysoké hodnoty, zatímco jsou hodnoty čítačů procesoru a síťového rozhraní nízké, může výkon snižovat pevný disk.",o:["Pravda","Nepravda"],c:[0],a:"Pravda"},
 {q:"Máte k dispozici server s OS Windows 2019. Při sledování systému jste zjistili následující parametry: Je nainstalován jeden procesor s frekvencí 2,8 Ghz, 4 GB RAM, jeden 750 GB SCSI disk.<br>PC používá síťovou kartu 3COM 100 Mb/s, která je připojena k přepínači 1000 Mb/s.<br>Už delší dobu sledujete dlouhé odezvy aplikací a celkové zpomalení práce systému. Naměřené parametry:<br><br><table class=\"q-table\"><tr><th>Čítač</th><th>minimum</th><th>maximum</th><th>průměr</th></tr><tr><td>Paměť – Chyby stránek/s</td><td>1,00</td><td>9,2</td><td>8,7</td></tr><tr><td>Paměť – Počet kB k dispozici</td><td>990</td><td>2534</td><td>2005</td></tr><tr><td>CPU – % času CPU</td><td>19</td><td>100</td><td>89</td></tr><tr><td>Fyzický disk – aktuální délka diskové fronty</td><td>0,3</td><td>3,7</td><td>1,4</td></tr><tr><td>Síťové rozhraní – Mb/sec</td><td>0,00</td><td>19,8</td><td>16,4</td></tr><tr><td>Délka fronty procesoru</td><td>2,1</td><td>8,6</td><td>5,1</td></tr></table><br>Která ze sledovaných komponent má nejvyšší podíl na nevyhovujícím stavu a měla by se vyměnit.?<br>Z finančních důvodů můžete provést změnu pouze jedné komponenty.",o:["Výměna síťové karty s přenosovou kapacitou 100 Mb/s za 1000 Mb/s.","Přidání dalšího modulu operační paměti. Celková hodnota operační paměti potom bude 8 GB.","Výměna HDD za výkonnější.","Výměna CPU za výkonnější."],c:[3],a:"Výměna CPU za výkonnější."},
 {q:"Čítač Systém/Délka fronty procesoru zobrazuje počet vláken, která čekají na zpracování.<br>Vlákna se řadí do fronty v oblasti sdílené všemi procesory v systému.<br>Pokud má tento čítač trvale hodnotu vyšší než  (vyberte správnou možnost)  vláken na procesor, měli byste procesory vyměnit za výkonnější nebo systém osadit dalšími CPU.",o:["2","20","15","5","10"],c:[4],a:"10"},
-{q:"Který z následujících požadavků není možné splnit v doméně Windows prostřednictvím Zásad skupiny (GPO)?",o:["Zákaz instalace ovladačů tiskáren uživatelům domény.","Nastavení délky hesla pro uživatelé domény.","Přesměrování složky Dokumenty z lokálních disků uživatelů do sdílené složky na souborovém serveru.","Konfigurace libovolného prohlížeče na počítačích v rámci domény Windows."],c:[3],a:"Konfigurace libovolného prohlížeče na počítačích v rámci domény Windows."},
+{q:"Který z následujících požadavků není možné splnit v doméně Windows prostřednictvím Zásad skupiny (GPO)?",o:["Zákaz instalace ovladačů tiskáren uživatelům domény.","Nastavení délky hesla pro uživatele domény.","Přesměrování složky Dokumenty z lokálních disků uživatelů do sdílené složky na souborovém serveru.","Konfigurace libovolného prohlížeče na počítačích v rámci domény Windows."],c:[3],a:"Konfigurace libovolného prohlížeče na počítačích v rámci domény Windows."},
 {q:"Zásady skupiny se nedají samostatně zálohovat. Musí se provést záloha celého počítače.<br>Je to pravda?",o:["Pravda","Nepravda"],c:[1],a:"Nepravda"},
 {q:"Kterou z níže uvedených možností auditování zvolíte pro sledování přístupu ke spustitelnému souboru?",o:["Auditovat události přihlášení.","Auditovat používání privilegií.","Auditovat přístup k objektům.","Auditovat události přihlášení k účtu."],c:[2],a:"Auditovat přístup k objektům."},
 {q:"Je následující výrok pravdivý?<br>Pokud dojde k odstranění předvoleb GPO  je obnovena původní konfigurace.",o:["Pravda","Nepravda"],c:[1],a:"Nepravda"},
@@ -326,7 +419,7 @@ const database = [
 {q:"V prostředí OS Linux potřebujete odstranit skupinu  sk1?  Označte příkazy, které to umožní.",o:["groups | del sk1","delgroup sk1","groupmod -d sk1","groupdel sk1"],c:[1,3],a:"delgroup sk1, groupdel sk1"},
 {q:"Jak zkontrolujete v Linuxu využití místa na disku v adresáři  /sql/prog ?",o:["space /sql/prog","df /sql/prog","du /sql/prog","ls -d /sql/prog"],c:[2],a:"du /sql/prog"},
 {q:"Který příkaz se používá v Linuxu k monitorování výkonu systému v reálném čase?",o:["top","performance","uptime","monitor"],c:[0],a:"top"},
-{q:"Co zobrazuje Linuxový příkaz id?                                              3",o:["Informace o uživateli a skupině pro aktuálního uživatele","ID hardwaru","ID systému","ID procesu příkazu"],c:[0],a:"Informace o uživateli a skupině pro aktuálního uživatele"},
+{q:"Co zobrazuje Linuxový příkaz id?",o:["Informace o uživateli a skupině pro aktuálního uživatele","ID hardwaru","ID systému","ID procesu příkazu"],c:[0],a:"Informace o uživateli a skupině pro aktuálního uživatele"},
 {q:"Uložte prvních pět řádků souboru  error.log  do nového souboru  e1.txt.",o:["$ file -5 error.log > e1.txt","$ cat -5 error.log > e1.txt","$ head -5 error.log => e1.txt","$ head -5 error.log > e1.txt"],c:[3],a:"$ head -5 error.log > e1.txt"},
 {q:"V souboru  error.log  chcete najít řetězec znaků  login . Označte Linuxový příkaz, který to umožní.",o:["cat error.log > find login","cat error.log | find login","cat error.log | grep login","query error.log login"],c:[2],a:"cat error.log | grep login"},
 {q:"Označte Linuxový příkaz, který zabrání všem uživatelům, aby nesmazali soubor  finance.doc  v adresáři  /home/bend.",o:["chmod ugo-w finance.doc","chmod ug-w finance.doc","chmod a-w /home/bend","chmod a+w /home/bend"],c:[2],a:"chmod a-w /home/bend"},
@@ -341,7 +434,7 @@ const database = [
 {q:"Na svém PC s OS Linux jste získali následující výstup týkající se procesů:<br>PID      PPID      S      CMD<br>166        1258      R      bash<br>732        3654      S      mutt<br>987        2354      T      tar<br>1247       654       Z      dbs<br>Napište identifikační číslo pozastaveného procesu.",o:["987"],c:[0],a:"987"},
 {q:"Na svém počítači s OS Linux jste získali výpis spuštěných procesů. Který znak označujíe spící proces?",o:["Z","T","S","R"],c:[2],a:"S"},
 {q:"Odstraňte adresář  /orf.  Adresář není prázdný, obsahuje další podadresáře a soubory. Vaším aktuálním adresářem je  /doc1/texty.",o:["$ rm -R /orf","$ rmdir  /orf","$ rm -r /orf","$ rmdir  -a /orf","$ rmdir -R /orf"],c:[0,2],a:"$ rm -R /orf, $ rm -r /orf"},
-{q:"V Linuxu zadáte příkaz  chmod u+s /usr/sbin/trackdata . Co znamená znak „ s “ v příkazu?",o:["sgid bit","sticky bit","suid bit","ssid"],c:[2],a:"suid bit"},
+{q:"V Linuxu zadáte příkaz  chmod u+s /usr/sbin/trackdata . Co znamená znak „ s \" v příkazu?",o:["sgid bit","sticky bit","suid bit","ssid"],c:[2],a:"suid bit"},
 {q:"Chcete najednou prázdně adresáře  k1, k2, k3 . Jak toho dosáhnete? (Všechny uvedené adresáře jsou podadresáře vašeho aktuálního adresáře.)",o:["$ rmdir \"k1 k2 k3\"","$ rmdir k1 , rmdir k2 ,rmdir k3","$ rmdir k1 ; rmdir k2 ; rmdir k3","$ rmdir k1 ; k2 ; k3","$ rmdir k1 k2 k3"],c:[2,4],a:"$ rmdir k1 k2 k3, $ rmdir k1 ; rmdir k2 ; rmdir k3"},
 {q:"Který příkaz se v Linuxu používá k extrahování souboru  file.tar.gz ?",o:["untar file.tar.gz","gzip -d file.tar.gz","extract file.tar.gz","tar -xzf file.tar.gz"],c:[3],a:"tar -xzf file.tar.gz"},
 {q:"Potřebujete podrobnější údaje k příkazu  echo . Co zadáte do příkazového řádku  pro zobrazení informací týkajících se tohoto příkazu v manuálových stránkách?",o:["man echo"],c:[0],a:"man echo"},
@@ -384,13 +477,13 @@ const database = [
 {q:"Která z následujících IPv4 adres  není  privátní adresa určená pro koncové zařízení?",o:["72.16.36.45/16","10.4.24.24/8","192.168.0.3/24","200.23.34.120/24"],c:[3],a:"200.23.34.120/24"},
 {q:"Která z následujících IPv4 adres je privátní adresa určená pro koncové zařízení?",o:["172.16.0.0/24","172.12.36.45/16","192.168.10.255/24","10.254.124.224/24"],c:[3],a:"10.254.124.224/24"},
 {q:"Na serveru v síti LAN nastavujete firewall. Server bude v síti plnit roli webového (podpora protokolu http, https), DNS serveru.<br>Označte kombinaci protokolu a portu, který pro splnění těchto funkcí nepotřebujete.",o:["TCP/80","TCP/143","UDP/53","TCP/443"],c:[1],a:"TCP/143"},
-    // --- UKÁZKOVÝ TEST Č. 1 ---
-{q:"Vytvořili jste sdílenou složku Alfa, která nemá být zobrazena při prohledávání sdílených složek pomocí ikony Místa v síti (Okolní počítače). Která z odpovědí nejlépe vystihuje řešení daného problému?",o:["Složka Alfa bude sdílena s názvem Alfa$.","Složka Alfa bude sdílena s názvem $Alfa.","Když složku vytvářím, nepoužiji název Alfa, ale složku pojmenuji Alfa$.","Problém není řešitelný, protože když zadám název sdílené složky Alfa$, složka opravdu nebude vidět.","Ale pokud v možnostech složky zvolím zobrazení skrytých souborů a složek, složka se objeví."],c:[0],a:"Složka Alfa bude sdílena s názvem Alfa$."},
+// --- UKÁZKOVÝ TEST Č. 1 ---
+{q:"Vytvořili jste sdílenou složku Alfa, která nemá být zobrazena při prohledávání sdílených složek pomocí ikony Místa v síti (Okolní počítače). Která z odpovědí nejlépe vystihuje řešení daného problému?",o:["Složka Alfa bude sdílena s názvem Alfa$.","Složka Alfa bude sdílena s názvem $Alfa.","Když složku vytvářím, nepoužiji název Alfa, ale složku pojmenuji Alfa$.","Problém není řešitelný, protože když zadám název sdílené složky Alfa$, složka opravdu nebude vidět.<br>Ale pokud v možnostech složky zvolím zobrazení skrytých souborů a složek, složka se objeví."],c:[0],a:"Složka Alfa bude sdílena s názvem Alfa$."},
 {q:"Počítače vybavené operačním systémem Windows mohou pracovat jako členové domény, nebo pracovní skupiny. Vyberte jeden nejpodstatnější rozdíl mezi pracovní skupinou a doménou:",o:["V pracovní skupině nemůže existovat počítač v roli serveru.","Pracovní skupina je určena pro malý počet stanic. Například u operačního systému Windows 10 pouze 20.","V pracovní skupině se nemohou vyskytovat serverové operační systémy – např. Windows 2019 server.","V doméně musí být alespoň jeden počítač s operačním systémem Windows server, který bude zastávat roli řadiče domény."],c:[3],a:"V doméně musí být alespoň jeden počítač s operačním systémem Windows server, který bude zastávat roli řadiče domény."},
 {q:"Potřebujete vytvořit uživatele na PC s operačním systémem Windows 10, který bude schopen instalovat programy, přidávat hardwarová zařízení, vytvářet další uživatele. Nový uživatel bude členem skupiny?",o:["Administrators","Users","Backup Operators","Network Operators"],c:[0],a:"Administrators"},
 {q:"Jak se nazývá typ licence, kde se výrobce vzdal veškerých práv. Uživatel s ním může libovolně nakládat.",o:["GNU GPL","Open Source","shareware","OEM","public domain","freeware"],c:[4],a:"public domain"},
 {q:"Označte příkaz(y) které umožní změnit nastavení auditování?",o:["cmd","gpedit.msc","secpol.msc","mmc","msconfig"],c:[2],a:"secpol.msc"},
-{q:"Označte doporučenou strategii pro používání skupin v prostředí, kde se prozatím nepředpokládá použití více domén Active Directory. (Jedna odpověď.)",o:["Uživatelský účet  místní doménová skupina  místní doménová skupina  oprávnění","Uživatelský účet  globální skupina  místní doménová skupina  oprávnění","Uživatelský účet  oprávnění","Uživatelský účet  univerzální skupina  místní doménová skupina  oprávnění"],c:[1],a:"Uživatelský účet  globální skupina  místní doménová skupina  oprávnění"},
+{q:"Označte doporučenou strategii pro používání skupin v prostředí, kde se prozatím nepředpokládá použití více domén Active Directory. (Jedna odpověď.)",o:["Uživatelský účet  místní doménová skupina  místní doménová skupina  oprávnění","Uživatelský účet  globální skupina  místní doménová skupina  oprávnění","Uživatelský účet  oprávnění","Uživatelský účet  univerzální skupina  místní doménová skupina  oprávnění"],c:[1],a:"Uživatelský účet  globální skupina  místní doménová skupina  oprávnění"},
 {q:"Doménově lokální skupina může získávat oprávnění? (Jedna odpověď.)",o:["V jakékoli doméně lesa Active Directory.","Pouze ve vlastní doméně kde byla vytvořena.","Pouze ve stromu domén, kde byla vytvořena.","Ve všech doménách kromě té, kde byla vytvořena."],c:[1],a:"Pouze ve vlastní doméně kde byla vytvořena."},
 {q:"Mezi uvedenými IP adresami vyberte takovou, která by se dala použít pro počítače v privátní síti připojené k internetu.",o:["172.16.0.1/16","127.0.0.1/8","192.168.0.256/24","9.8.45.2/16"],c:[0],a:"172.16.0.1/16"},
 {q:"Programové produkty Internet Information Server, Apache, Tomcat paří do skupiny serverových aplikací typu…",o:["Databáze","Poštovní servery","Antivirové programy","Webové servery"],c:[3],a:"Webové servery"},
@@ -401,11 +494,10 @@ const database = [
 {q:"Potřebuji sledovat uživatele, kteří úspěšně modifikují obsah souboru instrukce.doc, který se nachází ve složce Dokumentace na disku X:. Označte nutné podmínky pro nejefektivnější splnění úkolu.",o:["Disk X: musí používat souborový systém NTFS.","Disk X: musí používat souborový systém FAT.","V zásadách skupiny musí být aktivována Zásada auditu, položka Auditovat přístup k objektům-úspěšné pokusy.","V zásadách skupiny musí být aktivována Zásada auditu, položka Auditovat změny zásad-úspěšné pokusy.","Je nutné nastavit auditování souboru instrukce.doc. Dále vybrat uživatele a zvolit na sledování položku zapisovat.","Je nutné nastavit auditování složky Dokumentace. Dále vybrat uživatele a zvolit na sledování položku zapisovat. Soubory nastavení auditování neumožňují."],c:[0,2,4],a:"Disk X: musí používat souborový systém NTFS., V zásadách skupiny musí být aktivována Zásada auditu, položka Auditovat přístup k objektům-úspěšné pokusy., Je nutné nastavit auditování souboru instrukce.doc. Dále vybrat uživatele a zvolit na sledování položku zapisovat."},
 {q:"Aktualizaci nastavených zásad skupiny týkající se Konfigurace počítače mohu na místním počítači provést (Více správných odpovědí).",o:["Modifikace zásad se okamžitě projeví po uložení manažerské konzoly.","Restartuji počítač.","Přihlásím se prostřednictvím účtu, který byl použit na provádění úprav.","Zadáním příkazu gpupdate."],c:[1,3],a:"Restartuji počítač., Zadáním příkazu gpupdate."},
 {q:"Pokud je velikost nestránkového fondu relativně velká v porovnání s celkovou fyzickou pamětí a máme problémy s výkonem systému, bude pravděpodobně nutné:",o:["Zvětšit hodnotu virtuální paměti.","Zvětšit hodnotu operační paměti.","Použít rychlejší HDD.","Vyměnit CPU za výkonnější."],c:[1],a:"Zvětšit hodnotu operační paměti."},
-{q:"Uživatel si stěžuje na nízký výkon svého počítače HP540. Pomocí modulu Sledování výkonu jste prováděli testování zátěže. Na základě sledovaných čítačů zvolte správné řešení uživatelova požadavku.",o:["Problematickým místem je ukazatel šířky pásma u síťového rozhraní. Jeho hodnota je příliš nízká.","Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu.","Jeho hodnota je na počítač se 16 GB operační paměti nedostatečná.","Problematickým místem je nedostatečná velikost souboru stránkovacího souboru pagefile.sys. Současná hodnota 16 GB je nedostatečná. Bude nutné zvýšení na 20 GB.","Všechny sledované údaje dokazují dostatečnou výkonnost počítače. Požadavky uživatele na výměnu jsou neopodstatněné."],c:[1],a:"Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu."},
+{q:"Uživatel si stěžuje na nízký výkon svého počítače HP540. Pomocí modulu Sledování výkonu jste prováděli testování zátěže. Na základě sledovaných čítačů zvolte správné řešení uživatelova požadavku.",o:["Problematickým místem je ukazatel šířky pásma u síťového rozhraní. Jeho hodnota je příliš nízká.","Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu.<br>Jeho hodnota je na počítač se 16 GB operační paměti nedostatečná.","Problematickým místem je nedostatečná velikost souboru stránkovacího souboru pagefile.sys. Současná hodnota 16 GB je nedostatečná. Bude nutné zvýšení na 20 GB.","Všechny sledované údaje dokazují dostatečnou výkonnost počítače. Požadavky uživatele na výměnu jsou neopodstatněné."],c:[1],a:"Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu."},
 {q:"Označte minimální oprávnění v nastavení sdílení složky umožňující spouštění programů a skriptů.",o:["Úplné řízení","Číst a spouštět","Změnit","Číst"],c:[3],a:"Číst"},
 {q:"Co je základním úkolem modulu Programy a funkce v Ovládacích panelech.",o:["Komprese nainstalovaných souborů.","Šifrování uživatelských programů.","Instalace aplikací.","Odinstalace aplikací."],c:[3],a:"Odinstalace aplikací."},
 {q:"Jak se jmenujte technologie umožňující zašifrovat jednotlivé soubory nebo složky.",o:["DFS","EFS","CIFS","SMB"],c:[1],a:"EFS"},
-
 // --- UKÁZKOVÝ TEST Č. 2 ---
 {q:"Rozhodl jsem se provádět zálohu pomocí modulu Historie. Která z následujících položek se nebude zálohovat.",o:["Dokumenty","Videa","Obrázky","Program Files (x86)"],c:[3],a:"Program Files (x86)"},
 {q:"Který podregistr Windows ukládá informace týkající se všech uživatelských účtů na počítači?",o:["HKEY_USERS (HKU)","HKEY_CURRENT_USER (HKCU)","HKEY_CURRENT_CONFIG (HKCC)","HKEY_CLASSES_ROOT (HKCR)"],c:[0],a:"HKEY_USERS (HKU)"},
@@ -421,7 +513,6 @@ const database = [
 {q:"Pokud se přihlásím lokálně k počítači a je ověřeno mé uživatelské jméno a heslo, stávám se členem skupiny…",o:["Administrators","Creator Owner","Dialup","Power Users","Interactive"],c:[4],a:"Interactive"},
 {q:"Pokud vytvořím soubor (nebo složku), stávám se u tohoto objektu členem skupiny…",o:["Administrators","Creator Owner","Dialup","Power Users","Interactive"],c:[1],a:"Creator Owner"},
 {q:"V prostředí OS Windows chci modifikovat obsah souboru navod.docx. Jaké je minimální oprávnění které umožní provedení této operace.",o:["Číst","Zapisovat","Měnit","Úplné řízení"],c:[2],a:"Měnit"},
-
 // --- UKÁZKOVÝ TEST Č. 3 ---
 {q:"Vyberte protokol, který využívá adresářová služba Active Directory.",o:["DAP","LDAP","X.500","OpenLDAP"],c:[1],a:"LDAP"},
 {q:"Na svém PC s operačním systémem Windows 8/8.1 potřebuji zobrazit seznam nainstalovaných ovladačů. Který z následujících příkazů mi umožní splnění úkolu?",o:["Sigverif","Sfc","Driverquery","Winnt32.exe/checkupgradeonly"],c:[2],a:"Driverquery"},
@@ -442,7 +533,34 @@ let currentIndex = 0;
 let testQuestions = [];
 let userAnswers = {};
 let timerInterval;
-let isReviewing = false; // Nová proměnná pro režim kontroly
+let isReviewing = false;
+
+// --- DARK MODE ---
+function applyTheme(dark) {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) btn.innerText = dark ? '☀️ Světlý mód' : '🌙 Tmavý mód';
+    localStorage.setItem('theme', dark ? 'dark' : 'light');
+}
+
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyTheme(!isDark);
+}
+
+// Automatická detekce při načtení
+(function() {
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+        applyTheme(saved === 'dark');
+    } else {
+        applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    // Sleduj živé změny systémového nastavení (jen pokud uživatel nemá vlastní volbu)
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (!localStorage.getItem('theme')) applyTheme(e.matches);
+    });
+})();
 
 function setMode(mode) {
     currentMode = mode;
@@ -464,7 +582,6 @@ function setMode(mode) {
         renderNav();
         loadQ(0);
     } else {
-        // Shuffle and pick 20
         testQuestions = [...database].sort(() => 0.5 - Math.random()).slice(0, 20);
         badge.innerText = 'TEST';
         badge.style.background = '#fce7f3';
@@ -475,20 +592,17 @@ function setMode(mode) {
     }
 }
 
-// Spuštění režimu kontroly (po testu)
 function reviewTest() {
     isReviewing = true;
     document.getElementById('results-card').style.display = 'none';
     document.getElementById('quiz-card').style.display = 'block';
-    document.getElementById('test-bar').style.display = 'none'; // Timer nepotřebujeme
+    document.getElementById('test-bar').style.display = 'none';
     
-    // Změníme badge
     const badge = document.getElementById('mode-badge');
     badge.innerText = 'KONTROLA CHYB';
     badge.style.background = '#fef3c7';
     badge.style.color = '#d97706';
 
-    // Aktualizujeme navigaci, aby ukazovala chyby
     updateNavForReview();
     loadQ(0);
 }
@@ -510,11 +624,10 @@ function updateNavForReview() {
     testQuestions.forEach((q, i) => {
         const btn = document.getElementById('nav-' + i);
         const uIdx = userAnswers[i];
-        // Pokud je odpověď v poli správných, je to OK
         if (uIdx !== undefined && q.c.includes(uIdx)) {
             btn.classList.add('correct');
         } else {
-            btn.classList.add('wrong'); // Špatně nebo nezodpovězeno
+            btn.classList.add('wrong');
         }
     });
 }
@@ -538,7 +651,6 @@ function loadQ(index) {
 
     const answered = userAnswers[index] !== undefined;
 
-    // Kdy zobrazit vysvětlení: v procvičování po odpovědi NEBO v režimu kontroly
     if ((currentMode === 'practice' && answered) || isReviewing) {
         explDiv.style.display = 'block';
     }
@@ -556,22 +668,19 @@ function loadQ(index) {
             }
         } else if (currentMode === 'test') {
             if (isReviewing) {
-                // Režim kontroly po testu
-                div.classList.add('disabled'); // Nejde měnit
+                div.classList.add('disabled');
                 if (q.c.includes(i)) {
-                    div.classList.add('correct'); // Vždy označ správnou
+                    div.classList.add('correct');
                 } else if (i === userAnswers[index]) {
-                    div.classList.add('wrong'); // Pokud uživatel vybral špatnou, označ červeně
+                    div.classList.add('wrong');
                 }
             } else {
-                // Během testu
                 if (i === userAnswers[index]) {
                     div.classList.add('selected-test');
                 }
             }
         }
 
-        // Click handler funguje jen pokud není disabled
         div.onclick = () => {
             if (!div.classList.contains('disabled')) selectAnswer(index, i);
         };
@@ -581,7 +690,7 @@ function loadQ(index) {
 
 function selectAnswer(qIndex, optIndex) {
     if (currentMode === 'practice' && userAnswers[qIndex] !== undefined) return;
-    if (isReviewing) return; // V kontrole nelze měnit
+    if (isReviewing) return;
     
     userAnswers[qIndex] = optIndex;
     const q = testQuestions[qIndex];
