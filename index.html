@@ -770,9 +770,12 @@ function startTimer() {
 
 function finishTest() {
     clearInterval(timerInterval);
-    document.getElementById('quiz-card').style.display = 'none';
-    document.getElementById('test-bar').style.display = 'none';
-    document.getElementById('results-card').style.display = 'block';
+    
+    /* Nahrazení inline stylů za manipulaci s CSS třídami */
+    document.getElementById('quiz-card').classList.add('hidden');
+    document.getElementById('test-bar').classList.add('hidden');
+    document.getElementById('test-bar').classList.remove('d-flex');
+    document.getElementById('results-card').classList.remove('hidden');
 
     let score = 0;
     testQuestions.forEach((q, i) => {
@@ -786,7 +789,6 @@ function finishTest() {
     document.getElementById('final-score').innerText = perc + "%";
     document.getElementById('final-text').innerText = `Získali jste ${score} bodů z 20.`;
 }
-
 // Start
 setMode('practice');
 </script>
