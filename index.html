@@ -355,17 +355,7 @@ const database = [
   <tr><td class="disk-name">Disk 0<br>Dynamic 1 TB</td><td class="disk-part">C: 200 GB</td><td class="disk-part">D: 300 GB</td><td class="disk-part">G: 250 GB</td><td class="disk-free">Nepřiděleno 250 GB</td></tr>
   <tr><td class="disk-name">Disk 1<br>Dynamic 1 TB</td><td class="disk-part">D: 300 GB</td><td class="disk-part">G: 250 GB</td><td class="disk-part">F: 250 GB</td><td class="disk-free">Nepřiděleno 250 GB</td></tr>
   <tr><td class="disk-name">Disk 2<br>Dynamic 750 GB</td><td class="disk-part">D: 300 GB</td><td class="disk-part">F: 250 GB</td><td></td><td></td></tr>
-</table>`,o:["Svazek typu RAID-1. Jeho kapacita bude 500 GB.","Svazek typu RAID-0. Jeho kapacita bude 250 GB.","Svazek typu RAID-5. Jeho kapacita bude 250 GB.","Svazek typu RAID-0. Jeho kapacita bude 500 GB.","Svazek typu RAID-1. Jeho kapacita bude 250 GB.","Rozložený svazek. Jeho kapacita bude 500 GB."],c:[1,3,5],a:"Svazek typu RAID-1. Jeho kapacita bude 250 GB.,Svazek typu RAID-0. Jeho kapacita bude 500 GB.,Rozložený svazek.\nJeho kapacita bude 500 GB.",e:"Při 250 volných GB na každém ze dvou disků získáme 500 GB buď prostým spojením (rozložený), nebo prokládaným (RAID-0). Ale při zrcadlení získáme pro data sice bezpečnost, ale kapacitu pouze 250 GB."},
-
-
-
-
-
-
-
-
-
-
+</table>`,o:["Svazek typu RAID-1. Jeho kapacita bude 500 GB.","Svazek typu RAID-5. Jeho kapacita bude 250 GB.","Svazek typu RAID-0. Jeho kapacita bude 500 GB.","Svazek typu RAID-1. Jeho kapacita bude 250 GB.","Rozložený svazek. Jeho kapacita bude 500 GB."],c:[0,2,4],a:"Svazek typu RAID-1. Jeho kapacita bude 250 GB.,Svazek typu RAID-0. Jeho kapacita bude 500 GB.,Rozložený svazek.\nJeho kapacita bude 500 GB.",e:"Při 250 volných GB na každém ze dvou disků získáme 500 GB buď prostým spojením (rozložený), nebo prokládaným (RAID-0). Ale při zrcadlení získáme pro data sice bezpečnost, ale kapacitu pouze 250 GB."},
 {q:"Označte typ RAID co střídavě a rovnoměrně umisťuje data do oblastí na jednotlivých discích. Navíc jsou data zrcadlena pomocí RAID-1.",o:["RAID-4","RAID-5","RAID 1 + 0","RAID 0 + 1"],c:[3],a:"RAID 0 + 1",e:"Tento typ (zvaný Mirror of Stripes) nejprve tvoří rychlé prokládané pole nula, a tato celá prokládaná struktura se pak bezpečně překlopí do zrcadla."},
 {q:"Který typ diskových jednotek nabízí lepší výkon a obvykle se nachází na serverech?",o:["MFM","RLL","SCSI","IDE"],c:[2],a:"SCSI",e:"Rozhraní SCSI (Small Computer System Interface) zvládalo už historicky vysoce paralelní běh, fronty a obrovskou propustnost ideální pro náročné servery."},
 {q:"Který z typů RAID používá tři nebo více disků k zajištění odolnosti proti chybám?",o:["RAID-1","RAID-5","RAID-3","RAID-0"],c:[1],a:"RAID-5",e:"RAID-5 počítá matematickou paritu ze zapsaných dat. Aby to mělo smysl a parita nebyla na stejném disku, vyžaduje k funkčnosti minimum tří fyzických disků."},
