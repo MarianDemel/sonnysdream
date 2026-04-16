@@ -160,6 +160,37 @@
 
         /* Nahrazení inline stylů za třídy */
         .hidden { display: none !important; }
+.btn-practice,
+.btn-test,
+.theme-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-practice::after,
+.btn-test::after,
+.theme-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('68.jpg');
+  background-size: auto 300px;
+  background-position: center 60%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: inherit; /* zachová zakulacené rohy */
+}
+
+.btn-practice:hover::after,
+.btn-test:hover::after,
+.theme-btn:hover::after {
+  opacity: 0.85; /* průhlednost – 1 = plný obrázek, 0.5 = napůl průhledný */
+}
+.btn-practice:hover,
+.btn-test:hover,
+.theme-btn:hover {
+  color: transparent;
+}
         .d-flex { display: flex !important; }
         .sidebar-title { margin: 0; font-size: 1.4em; }
         .sidebar-subtitle { font-size: 0.85em; opacity: 0.9; margin-top: 5px; }
@@ -512,7 +543,7 @@ const database = [
 {q:"Potřebujete zjistit IPv4/IPv6  adresu na Linuxovém serveru. Napište příkaz v základní podobě.",o:["ifconfig","netstat","ipconfig","ip"],c:[3],a:"ip",e:"I když starší Linuxy využívaly program ifconfig, v moderních distribucích ho zcela nahradil výkonný síťový nástroj pod jednotným příkazem 'ip' (často spouštěný s parametrem ip addr)."},
 {q:"Na serveru v síti LAN nastavujete firewall. Server bude v síti plnit roli DHCP, DNS serveru.<br>Označte kombinaci protokolu a portu, který pro splnění těchto funkcí  nepotřebujete .",o:["TCP/53","UDP/67","UDP/68","UDP/53"],c:[2],a:"UDP/68",e:"Na portu 68 naslouchá příchozím DHCP zprávám lokálně klient, nikoliv server. Pokud stavíme DHCP server, musí umět naslouchat pouze dotazům z venku na portu 67."},
 {q:"Pomocí jakého příkazu zobrazíte v prostředí OS Linux, Windows směrovací tabulku.",o:["ipconfig","netstat","nslookup","arp"],c:[1],a:"netstat",e:"S pomocí přepínače '-r' (route) dokáže známý síťový nástroj 'netstat' vypsat celou vnitřní směrovací tabulku. Je navíc společný pro platformu Windows i Linux."},
-{q:"Která z následujících IPv4 adres  není  privátní adresa určená pro koncové zařízení?",o:["172.16.36.45/16","10.4.24.24/8","192.168.0.3/24","200.23.34.120/24"],c:[3],a:"200.23.34.120/24",e:"Adresy 10.x.x.x, 172.16-31.x.x i 192.168.x.x spadají podle norem striktně do vyhrazených privátních vnitřních rozsahů, kdežto rozsah 200 je naprosto standardní veřejnou adresou fungující v internetu."},
+{q:"Která z následujících IPv4 adres  není  privátní adresa určená pro koncové zařízení?",o:["72.16.36.45/16","10.4.24.24/8","192.168.0.3/24","200.23.34.120/24"],c:[3],a:"200.23.34.120/24",e:"Adresy 10.x.x.x, 172.16-31.x.x i 192.168.x.x spadají podle norem striktně do vyhrazených privátních vnitřních rozsahů, kdežto rozsah 200 je naprosto standardní veřejnou adresou fungující v internetu."},
 {q:"Která z následujících IPv4 adres je privátní adresa určená pro koncové zařízení?",o:["172.16.0.0/24","172.12.36.45/16","192.168.10.255/24","10.254.124.224/24"],c:[3],a:"10.254.124.224/24",e:"Z nabízených se pouze desetková adresa vejde do privátního bloku třídy A a nedisponuje na konci číslem 255 nebo podobnou neplatnou vlastností, lze ji tedy plně přidělit koncovému zařízení."},
 {q:"Na serveru v síti LAN nastavujete firewall. Server bude v síti plnit roli webového (podpora protokolu http, https), DNS serveru.<br>Označte kombinaci protokolu a portu, který pro splnění těchto funkcí nepotřebujete.",o:["TCP/80","TCP/143","UDP/53","TCP/443"],c:[1],a:"TCP/143",e:"Pro funkční HTTP web slouží port 80, pro šifrované HTTPS port 443 a pro dotazy DNS port 53. Ponechaný port 143 by sloužil e-mailové komunikaci IMAP, což nesouvisí se zadáním."},
 {q:"Vytvořili jste sdílenou složku Alfa, která nemá být zobrazena při prohledávání sdílených složek pomocí ikony Místa v síti (Okolní počítače). Která z odpovědí nejlépe vystihuje řešení daného problému?",o:["Složka Alfa bude sdílena s názvem Alfa$.","Složka Alfa bude sdílena s názvem $Alfa.","Když složku vytvářím, nepoužiji název Alfa, ale složku pojmenuji Alfa$.","Problém není řešitelný, protože když zadám název sdílené složky Alfa$, složka opravdu nebude vidět.<br>Ale pokud v možnostech složky zvolím zobrazení skrytých souborů a složek, složka se objeví."],c:[0],a:"Složka Alfa bude sdílena s názvem Alfa$.",e:"Znak dolaru ($) na konci názvu sdílené složky zajistí, že bude složka skrytá a nezobrazí se při běžném procházení sítě (v tzv. Okolních počítačích). K jejímu zobrazení je nutné napsat přesnou cestu ručně."},
@@ -531,7 +562,7 @@ const database = [
 {q:"Potřebuji sledovat uživatele, kteří úspěšně modifikují obsah souboru instrukce.doc, který se nachází ve složce Dokumentace na disku X:. Označte nutné podmínky pro nejefektivnější splnění úkolu.",o:["Disk X: musí používat souborový systém NTFS.","Disk X: musí používat souborový systém FAT.","V zásadách skupiny musí být aktivována Zásada auditu, položka Auditovat přístup k objektům-úspěšné pokusy.","V zásadách skupiny musí být aktivována Zásada auditu, položka Auditovat změny zásad-úspěšné pokusy.","Je nutné nastavit auditování souboru instrukce.doc. Dále vybrat uživatele a zvolit na sledování položku zapisovat.","Je nutné nastavit auditování složky Dokumentace. Dále vybrat uživatele a zvolit na sledování položku zapisovat. Soubory nastavení auditování neumožňují."],c:[0,2,4],a:"Disk X: musí používat souborový systém NTFS., V zásadách skupiny musí být aktivována Zásada auditu, položka Auditovat přístup k objektům-úspěšné pokusy., Je nutné nastavit auditování souboru instrukce.doc. Dále vybrat uživatele a zvolit na sledování položku zapisovat.",e:"K zachycení auditu u souborů je zásadní disponovat systémem NTFS. Pak se musí v systémových Zásadách nejprve globálně aktivovat audit 'přístupu k objektům'. Nakonec se u konkrétního souboru detailně specifikuje sledování na akci zápisu."},
 {q:"Aktualizaci nastavených zásad skupiny týkající se Konfigurace počítače mohu na místním počítači provést (Více správných odpovědí).",o:["Modifikace zásad se okamžitě projeví po uložení manažerské konzoly.","Restartuji počítač.","Přihlásím se prostřednictvím účtu, který byl použit na provádění úprav.","Zadáním příkazu gpupdate."],c:[1,3],a:"Restartuji počítač., Zadáním příkazu gpupdate.",e:"Položky doménových bezpečnostních zásad zasahujících přímo pod kapotu konfigurace stroje a OS vyžadují po svém přiřazení buďto ruční násilné vynucení příkazem 'gpupdate', anebo spolehlivě projít cyklem restartování PC."},
 {q:"Pokud je velikost nestránkového fondu relativně velká v porovnání s celkovou fyzickou pamětí a máme problémy s výkonem systému, bude pravděpodobně nutné:",o:["Zvětšit hodnotu virtuální paměti.","Zvětšit hodnotu operační paměti.","Použít rychlejší HDD.","Vyměnit CPU za výkonnější."],c:[1],a:"Zvětšit hodnotu operační paměti.",e:"Fond nepřesunutelné (nestránkované) paměti pevně náleží nepostradatelným procesům v jádře a hardwarovým ovladačům a neustále z RAM ujídá, aniž by ji mohl vracet disku. Jistým lékem je tak dokoupení silnější fyzické operační paměti."},
-{q:"<div class='context-box'><img src='67.png' alt='Výstup Sledování výkonu HP450'></div>Uživatel si stěžuje na nízký výkon svého počítače HP540. Pomocí modulu Sledování výkonu jste prováděli testování zátěže. Na základě sledovaných čítačů zvolte správné řešení uživatelova požadavku.",o:["Problematickým místem je ukazatel šířky pásma u síťového rozhraní. Jeho hodnota je příliš nízká.","Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu.<br>Jeho hodnota je na počítač se 16 GB operační paměti nedostatečná.","Problematickým místem je nedostatečná velikost souboru stránkovacího souboru pagefile.sys. Současná hodnota 16 GB je nedostatečná. Bude nutné zvýšení na 20 GB.","Všechny sledované údaje dokazují dostatečnou výkonnost počítače. Požadavky uživatele na výměnu jsou neopodstatněné."],c:[3],a:"Všechny sledované údaje dokazují dostatečnou výkonnost počítače. Požadavky uživatele na výměnu jsou neopodstatněné.",e:"Správnou odpovědí v kontextu tohoto testu je možnost 4, protože tři hlavní sledované ukazatele výkonu nevykazují žádné známky přetížení. Procesor je celkově vytížen pouze na 37,7 %, což znamená dostatečnou výkonnostní rezervu. Operační paměť má k dispozici přes 11 GB volného prostoru, takže systém rozhodně netrpí jejím nedostatkem. Fyzický disk pak vykazuje střední délku fronty téměř nulovou (0,054), což dokazuje, že se na operace čtení a zápisu vůbec nečeká. Z hlediska těchto základních diagnostických metrik je tedy hardware zcela dostačující."},
+{q:"<div class='context-box'><img src='67.png' alt='Výstup Sledování výkonu HP450'></div>Uživatel si stěžuje na nízký výkon svého počítače HP540. Pomocí modulu Sledování výkonu jste prováděli testování zátěže. Na základě sledovaných čítačů zvolte správné řešení uživatelova požadavku.",o:["Problematickým místem je ukazatel šířky pásma u síťového rozhraní. Jeho hodnota je příliš nízká.","Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu.<br>Jeho hodnota je na počítač se 16 GB operační paměti nedostatečná.","Problematickým místem je nedostatečná velikost souboru stránkovacího souboru pagefile.sys. Současná hodnota 16 GB je nedostatečná. Bude nutné zvýšení na 20 GB.","Všechny sledované údaje dokazují dostatečnou výkonnost počítače. Požadavky uživatele na výměnu jsou neopodstatněné."],c:[1],a:"Problémy s výkonem způsobuje operační paměť. Dokazuje to čítač Počet MB k dispozici a bajty nestránkového fondu.",e:"Obří konzumace ve vymezeném nestránkovaném fondu z logů monitoringu a zoufale nedostatečný počet volných využitelných MB v RAM jasně a bezchybně viní limit operační paměti."},
 {q:"Označte minimální oprávnění v nastavení sdílení složky umožňující spouštění programů a skriptů.",o:["Úplné řízení","Číst a spouštět","Změnit","Číst"],c:[3],a:"Číst",e:"Základní bezpečnostní parametr sdílení 'Číst' umožňuje vzdálenému klientovi vidět soubor na serveru a načíst jeho samotné tělo (spustitelný kód) k sobě do paměti k lokálnímu spuštění – nic silnějšího nutné není."},
 {q:"Co je základním úkolem modulu Programy a funkce v Ovládacích panelech.",o:["Komprese nainstalovaných souborů.","Šifrování uživatelských programů.","Instalace aplikací.","Odinstalace aplikací."],c:[3],a:"Odinstalace aplikací.",e:"Jedná se o klasický základní komponent systému sloužící jako čisté, bezpečné a systémem podporované rozhraní výhradně k odebírání neboli pro odinstalaci počítačových softwarů a programů od uživatele."},
 {q:"Jak se jmenujte technologie umožňující zašifrovat jednotlivé soubory nebo složky.",o:["DFS","EFS","CIFS","SMB"],c:[1],a:"EFS",e:"Encrypting File System (EFS) funguje jako doplňkový bezpečnostní podmodul nadstavby NTFS. Slouží k transparentnímu, rychlému a spolehlivému uzamčení šifrováním na úrovni jediného adresáře či souboru bez nutnosti kryptovat kompletní část disku."},
