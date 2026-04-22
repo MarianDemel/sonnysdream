@@ -1135,5 +1135,82 @@ function finishTest() {
 // Start
 setMode('practice');
 </script>
+
+<!-- Uvítací modal -->
+<style>
+#uvitaci-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+#uvitaci-modal-overlay.viditelny {
+    display: flex;
+}
+#uvitaci-modal {
+    background: var(--card, #fff);
+    color: var(--text, #0f172a);
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    line-height: 1.6;
+}
+#uvitaci-modal h2 {
+    margin: 0 0 1rem 0;
+    font-size: 1.2rem;
+    color: var(--primary, #2563eb);
+}
+#uvitaci-modal p {
+    margin: 0 0 0.85rem 0;
+}
+#uvitaci-modal a {
+    color: var(--primary, #2563eb);
+    font-weight: 600;
+}
+#uvitaci-modal-ok {
+    margin-top: 1.25rem;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    background: var(--primary, #2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+#uvitaci-modal-ok:hover {
+    background: var(--primary-hover, #1d4ed8);
+}
+</style>
+
+<div id="uvitaci-modal-overlay">
+    <div id="uvitaci-modal">
+        <h2>Ahoj, dobrodruhu 👋</h2>
+        <p>Jak jistě víš, praktická maturita v roce 26 je již za námi. Pokud jsi tady z tohoto ročníku, ptám se jen — proč?</p>
+        <p>Pokud jsi však z řad teprve budoucích maturantů a někdo ti tento web doporučil (mimochodem, měl bys mu poděkovat, že mu záleží na tvé budoucnosti), tak doporučuji web stáhnout — doménu určitě platit nebudu, web končí k 2. únoru 2026. Práv na použití kódu jsem se vzdal (otázky jsou však od pana Sonnka, takže jsem je technicky vzato já porušil, ale pšt).</p>
+        <p>Jestli jsi to přečetl až sem, tak hodně štěstí! <a href="https://github.com/MarianDemel/sonnysdream/blob/main/index.html" target="_blank">Slíbený web zde.</a></p>
+        <button id="uvitaci-modal-ok">OK</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var KLIC = 'uvitaci_modal_zavreno';
+    if (!localStorage.getItem(KLIC)) {
+        document.getElementById('uvitaci-modal-overlay').classList.add('viditelny');
+    }
+    document.getElementById('uvitaci-modal-ok').addEventListener('click', function() {
+        localStorage.setItem(KLIC, '1');
+        document.getElementById('uvitaci-modal-overlay').classList.remove('viditelny');
+    });
+})();
+</script>
 </body>
 </html>
